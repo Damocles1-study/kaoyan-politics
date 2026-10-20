@@ -1,0 +1,5 @@
+.DS_Store
+_build/ocr/
+_build/work/
+_build/ocrimg/
+__pycache__/

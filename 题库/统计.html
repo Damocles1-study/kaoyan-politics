@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>刷题统计</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  table.st td,table.st th{text-align:center;white-space:nowrap}
+  table.st td.l{text-align:left;white-space:normal}
+  table.st tr.sum td{background:var(--accent-soft);font-weight:700}
+  .bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;min-width:60px}
+  .bar i{display:block;height:100%;background:var(--green)}
+  textarea{width:100%;min-height:90px;font:12px/1.5 ui-monospace,monospace;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--bg);color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="crumb"><a href="../index.html">← 政治复盘中心</a> · <a href="刷题.html">📚 去刷题</a></div>
+  <header><h1>统计 ／ 错题本</h1><p class="sub">肖秀荣给的达标线：<b>单选 ≥70%</b>、<b>多选 50%–55%</b>。达标就进下一章，不达标先清错题本。</p></header>
+  <section class="card"><h2>总览</h2><div class="stats" id="ov"></div>
+    <p style="margin-top:12px"><a class="btn pri" href="刷题.html?p=all&t=all&mode=wrong">⚡ 五科错题一起刷</a></p></section>
+  <section class="card"><h2>按科目 · 按章</h2><div class="gridwrap"><table class="st" id="tb"></table></div>
+    <p class="note">「错题」＝做错过、且还没有连续做对 2 次的题。点数字直接进该章错题本。</p></section>
+  <section class="card"><h2>换设备：导出 / 导入记录</h2>
+    <p class="lead">刷题记录只存在当前浏览器。要从电脑搬到手机（或反过来）：在旧设备点「导出」→ 复制文本 → 新设备粘贴后点「导入」（会与现有记录合并，取做题次数多的那条）。</p>
+    <p><button class="btn" id="exp">导出</button> <button class="btn" id="imp">导入</button> <button class="btn" id="clr">清空本机记录</button></p>
+    <textarea id="box" placeholder="导出的记录会出现在这里；要导入就把文本粘贴到这里"></textarea>
+    <p class="note" id="msg"></p></section>
+</div>
+<script src="meta.js"></script>
+<script>
+(function(){
+  var KEY='pol_rec_v1', rec={};
+  try{rec=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){}
+  var M=window.POLMETA||{}, order=['my','sg','xg','sx','mz'];
+  function ids(p,t,rs){var a=[];(rs||[]).forEach(function(r){for(var n=r[0];n<=r[1];n++)a.push(p+'-'+t+'-'+n);});return a;}
+  function isW(r){return r&&r.w>0&&!(r.streak>=2);}
+  function cell(list,t){
+    var d=list.filter(function(k){return rec[k];}), ok=d.filter(function(k){return rec[k].ok;}).length;
+    return {n:list.length,d:d.length,acc:d.length?Math.round(100*ok/d.length):null,w:list.filter(function(k){return isW(rec[k]);}).length};
+  }
+  function fmt(c,goal){ if(!c.n) return '—'; var a=c.acc==null?'—':c.acc+'%';
+    var col=c.acc==null?'':c.acc>=goal?'style="color:var(--green);font-weight:700"':'style="color:var(--red);font-weight:700"';
+    return c.d+'/'+c.n+' · <span '+col+'>'+a+'</span>'; }
+  var h='<tr><th>科目</th><th>章</th><th>单选（达标 70%）</th><th>多选（达标 50%）</th><th>错题</th></tr>', T={s:[],m:[]}, W=0, D=0, N=0;
+  order.forEach(function(p){ var S=M[p]; if(!S) return;
+    S.ch.forEach(function(c,i){
+      var s=ids(p,'s',c.s), m=ids(p,'m',c.m).concat(ids(p,'e',c.e)); T.s=T.s.concat(s); T.m=T.m.concat(ids(p,'m',c.m));
+      var cs=cell(s), cm=cell(m), w=cs.w+cm.w; W+=w; D+=cs.d+cm.d; N+=cs.n+cm.n;
+      h+='<tr>'+(i===0?'<td rowspan="'+S.ch.length+'" style="font-weight:700;color:var(--accent)">'+S.short+'</td>':'')+'<td class="l">'+c.name+'</td><td>'+fmt(cs,70)+'</td><td>'+fmt(cm,50)+'</td><td>'+(w?'<a href="刷题.html?p='+p+'&t=all&ch='+c.ch+'&mode=wrong">'+w+'</a>':'0')+'</td></tr>';
+    });
+  });
+  document.getElementById('tb').innerHTML=h;
+  var a=cell(T.s), b=cell(T.m);
+  document.getElementById('ov').innerHTML='<div class="stat"><div class="v">'+D+' / '+N+'</div><div class="k">已做 / 总题</div></div>'
+    +'<div class="stat"><div class="v">'+(a.acc==null?'—':a.acc+'%')+'</div><div class="k">单选正确率</div></div>'
+    +'<div class="stat"><div class="v">'+(b.acc==null?'—':b.acc+'%')+'</div><div class="k">多选正确率</div></div>'
+    +'<div class="stat"><div class="v">'+W+'</div><div class="k">错题本</div></div>';
+  var box=document.getElementById('box'), msg=document.getElementById('msg');
+  document.getElementById('exp').onclick=function(){ box.value=JSON.stringify(rec); box.select(); msg.textContent='已导出 '+Object.keys(rec).length+' 条记录，复制下面的文本到另一台设备。'; };
+  document.getElementById('imp').onclick=function(){
+    try{ var x=JSON.parse(box.value), n=0; Object.keys(x).forEach(function(k){ if(!rec[k]||(x[k].n||0)>(rec[k].n||0)){rec[k]=x[k];n++;} });
+      localStorage.setItem(KEY,JSON.stringify(rec)); msg.textContent='导入完成，更新了 '+n+' 条。刷新页面查看。'; }
+    catch(e){ msg.textContent='导入失败：文本不是有效的导出记录。'; }
+  };
+  document.getElementById('clr').onclick=function(){ if(confirm('确定清空本机全部刷题记录？此操作不可撤销（建议先导出备份）。')){ try{localStorage.removeItem(KEY);}catch(e){} location.reload(); } };
+})();
+</script>
+</body>
+</html>

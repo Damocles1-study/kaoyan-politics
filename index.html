@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>政治复盘中心</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .cd{font-family:var(--serif);font-size:2.1rem;font-weight:700;color:var(--accent);line-height:1}
+  .cdk{font-size:.8rem;color:var(--muted)}
+  .hero{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:14px}
+  table.score td,table.score th{text-align:center;white-space:nowrap}
+  table.score td:first-child{text-align:left;font-weight:700}
+  table.score tr.tot td{background:var(--accent-soft);font-weight:700}
+  table.chtab{min-width:640px;font-size:.83rem}
+  table.chtab td{vertical-align:middle}
+  table.chtab td.sj{font-weight:700;color:var(--accent);white-space:nowrap;background:var(--bg)}
+  table.chtab td.n{text-align:center;white-space:nowrap}
+  table.chtab a{text-decoration:none;font-weight:600}
+  .acc{font-size:.75rem;border-radius:6px;padding:1px 6px;white-space:nowrap}
+  .acc.g{background:var(--green-soft);color:var(--green)} .acc.y{background:var(--gold-soft);color:var(--gold)} .acc.r{background:var(--red-soft);color:var(--red)}
+  .plan li{margin:6px 0}
+  .plan b{color:var(--accent)}
+  .today{border:2px solid var(--accent);border-radius:12px;padding:12px 14px;margin-top:12px;background:var(--card)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>政治复盘中心</h1>
+  <p class="sub">2027 考研 · 基础一般、只求最应试地拿分 · 主线 = <b>肖秀荣 1000 题 ＋ 背诵手册 ＋ 本站</b></p>
+  <div class="hero">
+    <div><div class="cd" id="cd">—</div><div class="cdk">距初试（2026-12-19）天数</div></div>
+    <div class="stats" style="margin-top:0">
+      <div class="stat"><div class="v">1163</div><div class="k">1000 题入库（五科全）</div></div>
+      <div class="stat"><div class="v" id="doneN">0</div><div class="k">我已做</div></div>
+      <div class="stat"><div class="v" id="wrongN">0</div><div class="k">错题本</div></div>
+      <div class="stat"><div class="v">1 / 41</div><div class="k">章讲义已写</div></div>
+      <div class="stat"><div class="v">92</div><div class="k">题有 ⚡ 秒杀笔记</div></div>
+    </div>
+  </div>
+</header>
+
+<section class="card">
+  <h2>今天做什么</h2>
+  <div class="banner"><b>一章一轮四步</b>：① 读本章 📖 讲义（30–40 分钟，先把道理听懂）→ ② 刷本章 1000 题<b>单选</b>（点一下就判，看 ⚡秒杀 ＋ 📕简析）→ ③ 刷<b>多选</b>（勾完再交）→ ④ 第二天只刷「错题本」，<b>连对 2 次自动出本</b>。</div>
+  <div class="today" id="today">正在读取你的进度…</div>
+</section>
+
+<section class="card">
+  <h2>先看清这张卷子：分值地图</h2>
+  <p class="lead">按 2024—2026 三年真题逐题归类，三年<b>题号分布完全一致</b>（单选 16×1、多选 17×2、分析 5×10）。</p>
+  <div class="gridwrap"><table class="score">
+    <tr><th>科目</th><th>单选</th><th>多选</th><th>分析题</th><th>合计</th><th>1000 题题量</th></tr>
+    <tr><td>马原</td><td>4 题</td><td>5 题（10 分）</td><td>第 34 题</td><td><b>24</b></td><td>396 ＋ 分析 2</td></tr>
+    <tr><td>毛中特</td><td>2 题</td><td>1 题（2 分）</td><td rowspan="2">第 35 题<br>（两科合出）</td><td>4 ＋ ½</td><td>115 ＋ 分析 2</td></tr>
+    <tr><td>习概</td><td>3 题</td><td>4 题（8 分）</td><td>11 ＋ ½</td><td>220 ＋ 分析 3</td></tr>
+    <tr><td>史纲</td><td>4 题</td><td>3 题（6 分）</td><td>第 36 题</td><td><b>20</b></td><td>251 ＋ 分析 4</td></tr>
+    <tr><td>思法</td><td>1 题</td><td>2 题（4 分）</td><td>第 37 题</td><td>15</td><td>166 ＋ 分析 4</td></tr>
+    <tr><td>时政</td><td>2 题</td><td>2 题（4 分）</td><td>第 38 题</td><td>16</td><td>1000 题不含（等肖八 / 肖四）</td></tr>
+    <tr class="tot"><td>合计</td><td>16</td><td>34</td><td>50</td><td>100</td><td>1148 选 ＋ 15 分析</td></tr>
+  </table></div>
+  <div class="mine" style="margin-top:12px">书上把五科排成「马、毛、习、史、思」→ 潜台词：<b>选择题 50 分里马原一科就占 14 分</b>，史纲 10 分、习概 11 分，毛中特和思法加起来才 9 分 → 所以刷 1000 题的顺序应是 <b>马原 → 史纲 → 习概 → 思法 → 毛中特</b>，分析题 50 分则留到 11 月底以后集中背（肖八 / 肖四出来再背，背早了会忘、也会白背）。</div>
+</section>
+
+<section class="card">
+  <h2>模块</h2>
+  <div class="types">
+    <div class="type"><h3><a href="题库/刷题.html">📚 1000 题题库</a><span class="st st-on">五科全</span></h3><p>1148 道选择 ＋ 15 道分析，手机随手刷。单选点一下即判、多选勾完再交；每题带 📕肖简析 / 点拨 / 出处页码；背题模式可直接翻答案。</p></div>
+    <div class="type"><h3><a href="题库/统计.html">📊 统计 ／ 错题本</a><span class="st st-on">可用</span></h3><p>按科目、按章看正确率（对照肖给的达标线：单选 70%、多选 50–55%），一键只刷错题。</p></div>
+    <div class="type"><h3><a href="讲义/马原_导论与第1章.html">📖 知识讲解</a><span class="st st-part">1 / 41 章</span></h3><p>没学过知识直接上题会很痛苦，所以每章先「讲一遍」：考点骨架 ＋ 🖼️ 打个比方 ＋ ⚡ 秒杀 ＋ ⚠️ 陷阱 ＋ 一页纸速查，每节直达对应题。</p></div>
+    <div class="type"><h3><a href="秒杀/选择题秒杀.html">⚡ 选择题秒杀库</a><span class="st st-part">第一版</span></h3><p>八类干扰项的识别法 ＋ 马原「根本 / 核心 / 基石 / 前提」易混提法表。选择题靠<b>认得出</b>，这里练眼力。</p></div>
+    <div class="type"><h3><a href="大题/分析题答题法.html">✍️ 分析题背诵</a><span class="st st-part">第一版</span></h3><p>大题不能靠秒杀，必须背完整要点：五道题各自的答题套路 ＋ 卷面怎么写 ＋ 背诵手册必背专题导航。</p></div>
+    <div class="type"><h3>📰 时政 ＆ 冲刺卷</h3><p><span class="st st-off">等书</span> 肖《形势与政策》（10 月）、肖八（11 月）、肖四（12 月）出来后接入：时政选择题入题库，肖四大题入背诵模块。</p></div>
+    <div class="type"><h3>📝 真题</h3><p><span class="st st-off">待建</span> 近 3 年真题 ＋ 讲真题已清洗、已识别成文字，12 月初做成「整卷模考」模式。</p></div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>章节总表</h2>
+  <p class="lead">一章一行：📖 有讲义的可直接点；题量可点进对应题型；「我的」一栏是本机刷题记录（绿 ≥70% · 黄 50–70% · 红 &lt;50%）。</p>
+  <div class="gridwrap"><table class="chtab" id="chtab"></table></div>
+</section>
+
+<section class="card">
+  <h2>60 天作战计划（10/21 → 12/19）</h2>
+  <ol class="plan">
+    <li><b>10/21–11/10 · 一刷选择题（重心）</b>：每天 1 章讲义 ＋ 本章 1000 题。马原（7 章）→ 史纲（10 章）→ 习概（17 章，章小题少，可一天 2–3 章）→ 思法（6 章）→ 毛中特（8 章）。</li>
+    <li><b>11/11–11/25 · 二刷错题 ＋ 时政</b>：错题本清零；肖《形势与政策》时政题；开始每天 15 分钟翻「⚡ 秒杀库」的易混提法。</li>
+    <li><b>11/26–12/10 · 肖八</b>：只做选择题（限时 30 分钟一套），大题看答案、划关键词，不背整段。</li>
+    <li><b>12/11–12/19 · 肖四 ＋ 背诵</b>：肖四选择题；大题按「✍️ 分析题背诵」的框架背肖四答案，每天默一遍关键词。</li>
+  </ol>
+  <p class="note">与数学一、英语一、408 共用这 60 天：政治建议每天 1.5–2 小时，11 月以后可以压到碎片时间（手机刷题本来就是为这个设计的）。</p>
+</section>
+
+<details class="deep">
+  <summary>资料说明 · 清洗记录 · 已知缺口</summary>
+  <h3>去水印</h3>
+  <p class="note">8 本 PDF 已全部清洗，放在本地 <code>政治/教材_去水印/</code>（单本 26–380MB，不推 GitHub）：删除「微信公众号：一烫」「木仓刷题小程序」「公众号[考研小舟]」「羊驼学长」等分发者文字水印 ＋ 背诵手册每页二维码 ＋ 讲真题 / 近 3 年试卷扫描图里烧进去的「考研福音」二维码（305 页逐页像素检测后涂白）。原版保留在 <code>政治/_原始PDF/</code>，确认无误后可删。</p>
+  <h3>题库是怎么来的</h3>
+  <p class="note">试题分册文字层 ＋ 本机 Vision 文字识别双源择优；解析分册本机识别后按「N. 答案 X」切题；1148 道选择题答案逐题对齐、零缺号；书第 18 页原扫描模糊，9 道题人工看图转录。少量识别错字可能残留，以纸质书为准。</p>
+  <h3>已知缺口</h3>
+  <p class="note">这份 1000 题试题 PDF 原本就缺了 12 页：马原分析题 P60–64、习概分析题 P113–116、史纲分析题 P154–156。对应分析题的<b>参考答案完整</b>，但材料和设问要对照纸质书。时政（形势与政策、当代世界经济与政治）不在 1000 题内。</p>
+</details>
+
+<p class="footer">三个兄弟中心：<a href="https://damocles1-study.github.io/kaoyan-408/">408</a> · <a href="https://damocles1-study.github.io/math1-review-center/">数学一</a> · <a href="https://damocles1-study.github.io/kaoyan-english/">英语一</a>。题目与解析版权归原作者，本站仅供个人复习，如有侵权联系即删。</p>
+</div>
+<script src="题库/meta.js"></script>
+<script>
+(function(){
+  var d=Math.ceil((new Date('2026-12-19T08:30:00+08:00')-new Date())/864e5);
+  document.getElementById('cd').textContent=d>0?d:'加油';
+  var rec={}; try{rec=JSON.parse(localStorage.getItem('pol_rec_v1'))||{};}catch(e){}
+  var M=window.POLMETA||{}, order=['my','sg','xg','sx','mz'];
+  function ids(p,t,rs){var a=[];(rs||[]).forEach(function(r){for(var n=r[0];n<=r[1];n++)a.push(p+'-'+t+'-'+n);});return a;}
+  var done=0, wrong=0;
+  Object.keys(rec).forEach(function(k){var r=rec[k]; done++; if(r.w>0 && !(r.streak>=2)) wrong++;});
+  document.getElementById('doneN').textContent=done; document.getElementById('wrongN').textContent=wrong;
+  var h='<tr><th>科目</th><th>章</th><th>📖 讲义</th><th>单选</th><th>多选</th><th>⚡</th><th>我的</th></tr>', next=null;
+  order.forEach(function(p){
+    var S=M[p]; if(!S) return;
+    S.ch.forEach(function(c,i){
+      var all=ids(p,'s',c.s).concat(ids(p,'m',c.m),ids(p,'e',c.e));
+      var dn=all.filter(function(k){return rec[k];}), ok=dn.filter(function(k){return rec[k].ok;}).length;
+      var acc=dn.length?Math.round(100*ok/dn.length):null;
+      var cls=acc==null?'':acc>=70?'g':acc>=50?'y':'r';
+      var mine=dn.length?'<span class="acc '+cls+'">'+dn.length+'/'+all.length+' · '+acc+'%</span>':'<span class="note">未开始</span>';
+      if(!next && dn.length<all.length && c.ch!==99) next={p:p,S:S,c:c,dn:dn.length,all:all.length};
+      var lk=c.lect?'<a href="'+c.lect+'">读 →</a>':'<span class="note">⏳</span>';
+      var u='题库/刷题.html?p='+p+'&ch='+c.ch+'&mode=seq&t=';
+      h+='<tr>'+(i===0?'<td class="sj" rowspan="'+S.ch.length+'">'+S.short+'</td>':'')+'<td>'+c.name+'</td><td class="n">'+lk+'</td>'
+        +'<td class="n">'+(c.ns?'<a href="'+u+'s">'+c.ns+'</a>':'—')+'</td><td class="n">'+(c.nm?'<a href="'+u+'m">'+c.nm+'</a>':(c.ne?'<a href="'+u+'e">分析 '+c.ne+'</a>':'—'))+'</td>'
+        +'<td class="n">'+(c.my||'')+'</td><td class="n">'+mine+'</td></tr>';
+    });
+  });
+  document.getElementById('chtab').innerHTML=h;
+  var t=document.getElementById('today');
+  if(next){
+    var c=next.c, u='题库/刷题.html?p='+next.p+'&ch='+c.ch+'&mode=undone&t='+(c.ns?'s':'m');
+    t.innerHTML='下一站：<b>'+next.S.short+' · '+c.name+'</b>（已做 '+next.dn+' / '+next.all+'）<br>'
+      +(c.lect?'<a class="btn" href="'+c.lect+'">📖 先读讲义</a> ':'<span class="note">本章讲义还没写，先直接刷题、看 📕简析。</span> ')
+      +'<a class="btn pri" href="'+u+'">继续刷没做过的 →</a>'+(wrong?' <a class="btn" href="题库/刷题.html?p=all&t=all&mode=wrong">错题本 '+wrong+' 题</a>':'');
+  } else t.textContent='全部章节都刷过一遍了，去错题本收尾吧。';
+})();
+</script>
+</body>
+</html>

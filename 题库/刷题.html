@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1000题 刷题</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  .tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center}
+  .tools select{font:inherit;font-size:.86rem;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);min-height:38px;width:100%;min-width:0}
+  #selCh{grid-column:1 / -1}
+  .tools .btns{display:flex;gap:6px}
+  .tools .btns .btn{flex:1;padding:4px 6px}
+  @media (min-width:760px){ .tools{grid-template-columns:1.3fr .7fr 2.4fr 1.3fr auto} #selCh{grid-column:auto} }
+  #bar{font-size:.84rem;color:var(--muted);margin-top:10px}
+  #bar b{color:var(--accent)}
+  .qcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:12px}
+  .qmeta{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+  .stem{font-size:1.02rem;line-height:1.85}
+  .opts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+  .opt{display:flex;gap:10px;align-items:flex-start;text-align:left;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit;font-size:.96rem;line-height:1.65;cursor:pointer;min-height:46px}
+  .opt .ol{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--muted);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;margin-top:1px}
+  .opt.sel{border-color:var(--blue);background:var(--blue-soft)}
+  .opt.sel .ol{background:var(--blue);border-color:var(--blue);color:#fff}
+  .opt.lock{cursor:default}
+  .opt.right{border-color:var(--green);background:var(--green-soft)}
+  .opt.right .ol{background:var(--green);border-color:var(--green);color:#fff}
+  .opt.wrong{border-color:var(--red);background:var(--red-soft)}
+  .opt.wrong .ol{background:var(--red);border-color:var(--red);color:#fff}
+  .opt.miss{border:2px dashed var(--green)}
+  .opt.miss .ol{border-color:var(--green);color:var(--green)}
+  .act{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .verdict{margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--line);font-size:.95rem}
+  .verdict.ok{background:var(--green-soft);color:var(--green)} .verdict.bad{background:var(--red-soft);color:var(--red)}
+  .jx,.db,.ea{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--line);font-size:.92rem;line-height:1.8}
+  .ea{border:2px solid var(--gold)}
+  .eh{font-weight:700;font-size:.84rem;color:var(--accent);margin-bottom:4px}
+  .src{font-size:.8rem;color:var(--muted);margin-top:8px}
+  #nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;justify-content:center;z-index:5}
+  #nav .btn{flex:1;max-width:160px}
+  #pos{font-size:.85rem;color:var(--muted);min-width:70px;text-align:center}
+  #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:6px;margin-top:12px}
+  .gi{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 0;font-size:.8rem;cursor:pointer}
+  .gi.g{background:var(--green-soft);color:var(--green);border-color:var(--green)}
+  .gi.r{background:var(--red-soft);color:var(--red);border-color:var(--red)}
+  .gi.cur{outline:2px solid var(--accent)}
+  .empty{padding:30px 10px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="crumb"><a href="../index.html">← 政治复盘中心</a> · <a href="统计.html">📊 统计 / 错题本</a></div>
+  <div class="tools">
+    <select id="selP" aria-label="科目"></select>
+    <select id="selT" aria-label="题型"><option value="s">单选</option><option value="m">多选</option><option value="e">分析题</option><option value="all">全部题型</option></select>
+    <select id="selCh" aria-label="章节"></select>
+    <select id="selMode" aria-label="模式"><option value="seq">顺序刷</option><option value="undone">只刷没做过的</option><option value="wrong">错题本（连对2次自动出本）</option><option value="rand">随机 20 题</option></select>
+    <div class="btns"><button class="btn sm" id="viewBtn"></button><button class="btn sm" id="gridBtn">题号</button></div>
+  </div>
+  <div id="bar"></div>
+  <div id="grid" hidden></div>
+  <div class="qcard" id="q"></div>
+  <p class="note">快捷键（电脑）：A–D / 1–4 选项 · Enter 提交多选 / 下一题 · ← → 翻题。做题记录只存在本机浏览器里。</p>
+</div>
+<div id="nav"><button class="btn" id="prev">← 上一题</button><span id="pos"></span><button class="btn" id="next">下一题 →</button></div>
+<script src="data_my.js"></script>
+<script src="data_mz.js"></script>
+<script src="data_xg.js"></script>
+<script src="data_sg.js"></script>
+<script src="data_sx.js"></script>
+<script src="engine.js"></script>
+<script>PolEngine.init();</script>
+</body>
+</html>
