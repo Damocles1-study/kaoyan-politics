@@ -76,11 +76,11 @@
   };
   function sectFrom(qp){
     const back = qp.get('back') || '', ids = (qp.get('ids') || '').split(',').filter(x => /^[a-z]+-[sme]-\d+$/.test(x));
-    const ok = /^\.\.\/讲义\/[^\/?:]+\.html(#[\w-]+)?$/.test(back);   // 只认站内讲义，防 javascript: 之类
-    return {ids: ok ? ids : [], back: ok ? back : '', lab: ok ? (qp.get('lab') || '') : ''};
+    const ok = /^\.\.\/(讲义|背诵)\/[^\/?:]+\.html(#[\w-]+)?$/.test(back);   // 只认站内讲义 / 背诵页，防 javascript: 之类
+    return {ids: ok ? ids : [], back: ok ? back : '', lab: ok ? (qp.get('lab') || '') : '', src: /^\.\.\/背诵/.test(back) ? '背诵卡' : '讲义'};
   }
   const backBtn = (txt, cls) => st.sect.back ? `<a class="btn ${cls||''}" data-back href="${esc(st.sect.back)}">${txt}</a>` : '';
-  const endBack = () => backBtn(st.sect.ids.length ? '✅ 本节刷完 · 回讲义原位' : '← 回讲义原位', 'pri');
+  const endBack = () => backBtn(st.sect.ids.length ? `✅ 本节刷完 · 回${st.sect.src}原位` : `← 回${st.sect.src}原位`, 'pri');
 
   function allQs(){ return Object.values(POL).flatMap(S => S.qs.map(q => Object.assign(q,{_p:S.key}))); }
   function isWrong(q){ const r = rec[q.id]; return r && r.w > 0 && !(r.streak >= 2); }
@@ -132,8 +132,8 @@
     let h = `共 <b>${L.length}</b> 题 · 已做 <b>${d}</b> · 正确率 <b>${acc==null?'—':acc+'%'}</b>`
       + (st.fm!=='one' && L.length ? ` · 分 <b>${gcount()}</b> 组` : '')
       + (st.t==='s'?' <span class="note">（肖：单选 ≥70% 达标）</span>':st.t==='m'?' <span class="note">（肖：多选 50–55% 达标）</span>':'');
-    if (st.sect.back) h += `<div class="from"><span>📖 ${st.sect.ids.length ? `只刷讲义本节 <b>${st.sect.ids.length}</b> 题` : '从讲义跳来'}${st.sect.lab ? ' · ' + esc(st.sect.lab) : ''}</span>`
-      + `<span class="acts">${backBtn('← 回讲义原位', 'sm pri')}${st.sect.ids.length ? '<button class="btn sm" id="sectAll">刷整章</button>' : ''}</span></div>`;
+    if (st.sect.back) h += `<div class="from"><span>📖 ${st.sect.ids.length ? `只刷${st.sect.src === '讲义' ? '讲义本节' : '这张背诵卡关联的'} <b>${st.sect.ids.length}</b> 题` : `从${st.sect.src}跳来`}${st.sect.lab ? ' · ' + esc(st.sect.lab) : ''}</span>`
+      + `<span class="acts">${backBtn(`← 回${st.sect.src}原位`, 'sm pri')}${st.sect.ids.length ? '<button class="btn sm" id="sectAll">刷整章</button>' : ''}</span></div>`;
     if (st.custom) h += `<div class="redo">🔁 错题再练 · ${L.length} 题<button class="btn sm" id="exitRedo">退出再练</button></div>`;
     $('#bar').innerHTML = h;
     const sa = $('#sectAll'); if (sa) sa.onclick = dropSect;
@@ -445,7 +445,7 @@
     if (jump && st.fm !== 'one'){ const k = st.list.findIndex(q=>q.id===jump) - st.g*gsize(); if (k >= 0) setTimeout(() => scrollToCard(k), 350); }
     if (window.PolUI) PolUI.seg($('#fmSeg'));
     $('#list').addEventListener('click', onListClick);
-    if (st.sect.back) $('.crumb').insertAdjacentHTML('afterbegin', `<a data-back href="${esc(st.sect.back)}">📖 回讲义原位</a>`);
+    if (st.sect.back) $('.crumb').insertAdjacentHTML('afterbegin', `<a data-back href="${esc(st.sect.back)}">📖 回${st.sect.src}原位</a>`);
     /* 回讲义：刚从那一页过来就 history.back()，浏览器会把滚动位置原样还回去；否则按 #节 打开 */
     document.addEventListener('click', e => {
       const a = e.target.closest('[data-back]'); if (!a) return;

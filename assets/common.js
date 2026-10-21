@@ -165,8 +165,8 @@
       a.insertAdjacentHTML('beforeend', '<span class="qdone">' + (d === ids.length ? '✓' : d + '/' + ids.length) + '</span>');
     };
     boxes.forEach(function(box){
-      var sec = box.closest('section[id]'), h2 = sec && sec.querySelector('h2');
-      var back = '../讲义/' + file + (sec ? '#' + sec.id : '');
+      var sec = box.closest('section[id], .card-mem[id]'), h2 = sec && sec.querySelector('h2, h4');
+      var back = '../' + decodeURIComponent(location.pathname.split('/').slice(-2, -1)[0]) + '/' + file + (sec ? '#' + sec.id : '');
       var lab = h2 ? h2.textContent.replace(/^\s*\d+\s*/, '').trim().slice(0, 24) : '';
       var all = [], p0 = null, ch0 = null, mixed = false;
       box.querySelectorAll('a.qlink:not(.sect)').forEach(function(a){

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>思法十四专题</title>
+<link rel="stylesheet" href="../assets/style.css?v=sect1">
+<style>
+  .card-mem{scroll-margin-top:12px}
+  .card-mem ol{padding-left:1.3em;margin:6px 0}
+  .card-mem li{margin:4px 0}
+  .sig{font-size:.86rem;color:var(--ink2);margin-top:6px}
+  .sig b{color:var(--orange)}
+  .card-mem h4 .n{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:var(--gold);color:#fff;font-size:.85rem;margin-right:8px}
+  .mark{float:right;font-size:.8rem}
+  .sub{display:inline-block;font-size:.74rem;font-weight:900;color:#fff;background:var(--ink);padding:0 6px;margin-right:6px;clip-path:polygon(0 0,100% 0,calc(100% - 4px) 100%,0 100%)}
+  .jump{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .jump a{font-size:.82rem;font-weight:800;text-decoration:none;padding:1px 9px;border:1.5px solid var(--ink-line);border-radius:2px;background:var(--card);box-shadow:2px 2px 0 var(--drop)}
+  .jump a.ok{background:var(--green-soft);color:var(--green)}
+  .card-mem .qlinks{margin-top:8px;padding-top:6px}
+  #prog b{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap lec">
+<div class="crumb"><a href="../index.html">← 政治复盘中心</a> · <a href="哲学十六原理.html">🧠 哲学十六原理</a> · <a href="背诵卡.html">🃏 背诵卡</a> · <a href="../大题/分析题答题法.html">✍️ 分析题答题法</a></div>
+<header><h1>思法十四大专题<br>（37 题思法分析题）</h1>
+<p class="sub">37 题几乎都是「一段青年 / 道德 / 法治材料 ＋ 问意义或青年怎么做」。下面 14 张卡对应背诵手册下册《分析题必背专题》P67–74 的全部十四个专题。<b>每张只需背红色关键句</b>，打开「背诵模式」就能遮住默写；答题按「是什么 → 关系 / 意义 → 青年怎么做」三段写。</p></header>
+<div id="legend"></div>
+
+<section class="card">
+<h2>答 37 题的固定三段</h2>
+<div class="mem">① <b>是什么</b>：先写这张卡的第一句（定义 / 地位），如「爱国主义体现了人们对自己祖国的深厚感情……」。<br>
+② <b>关系 / 意义</b>：写卡里的关系句或作用句，比如自我价值与社会价值、个人理想与社会理想、法治与德治、苦与乐。思法大题的分数大多在这一段。<br>
+③ <b>青年怎么做</b>：结尾一定落到「新时代青年应当……」，从下面的「青年落脚句」里挑 2–3 句，再配一句材料。<br>
+一问写 3–4 点，<b>分点编号、关键句在每段开头</b>。思法材料常常同时调两三张卡（比如「支教」会调人生价值、志愿服务和理想信念），宁多勿少。</div>
+<p class="note">右上角的「✓ 背熟」勾选会记在本机；下面这排跳转按钮背熟后会变绿，方便你看还剩哪几张。</p>
+<div class="jump" id="jump"></div>
+<p class="note" id="prog"></p>
+</section>
+
+<section class="card">
+<h2>青年落脚句（第 ③ 段直接调）</h2>
+<div class="mem">· <span class="kw">立大志、明大德、成大才、担大任</span>，努力成为堪当民族复兴重任的时代新人。<br>
+· <span class="kw">把小我融入祖国的大我、人民的大我之中</span>，与历史同向、与祖国同行、与人民同在。<br>
+· <span class="kw">坚定理想信念，志存高远、脚踏实地</span>，在实现中国梦的生动实践中书写人生华章。<br>
+· <span class="km">坚定不移听党话、跟党走</span>，增强做中国人的<span class="kn">志气、骨气、底气</span>。<br>
+· 做社会主义核心价值观的<span class="kd">坚定信仰者、积极传播者、模范践行者</span>，做到<span class="kn">勤学、修德、明辨、笃实</span>。<br>
+· <span class="km">勇做改革创新的生力军</span>；在实践中<span class="kn">长知识、强本领、增才干</span>。<br>
+· 立志做<span class="kw">有理想、敢担当、能吃苦、肯奋斗</span>的新时代好青年。</div>
+</section>
+
+<section class="card" id="cards"></section>
+</div>
+<script>
+/* u：讲义节（📖 回讲义）  q：1000 题里练这张卡的分析题 */
+var P=[
+ {t:'理想信念',u:'思法_第2_3章.html#d2',kw:['精神之钙','四个作用','社会理想最根本','个人理想从属社会理想','应然与实然','实践 · 艰苦奋斗'],
+  f:['<span class="sub">作用</span><span class="kw">理想信念是人的精神世界的核心，是人精神上的「钙」</span>；理想指引方向，信念决定成败。',
+     '四个作用：<span class="km">昭示奋斗目标（思想行为的定向器）· 催生前进动力 · 提供精神支柱 · 提高精神境界</span>。',
+     '<span class="sub">个人与社会</span><span class="kw">社会理想是最根本、最重要的，个人理想从属于社会理想</span>；个人理想只有同国家的前途、民族的命运相结合，才可能变为现实。',
+     '<span class="sub">理想与现实</span>既对立（<span class="kd">「应然」与「实然」的矛盾</span>）又统一（理想受现实规定和制约，现实中孕育着理想）；<span class="kw">理想必须通过实践才能转变为现实，艰苦奋斗不可或缺</span>。'],
+  s:'「志存高远」「精神之钙」「坚定信仰」「理想很丰满现实很骨感」「把个人理想融入国家事业」'},
+ {t:'正确的人生观',u:'思法_导论与第1章.html#d5',q:[1],kw:['服务人民 奉献社会','价值首先在于奉献','自我价值与社会价值','相互依存','根本尺度'],
+  f:['<span class="sub">追求</span><span class="kw">服务人民、奉献社会</span>代表了人类社会迄今最先进的人生追求；<span class="km">人生的价值首先在于奉献</span>。',
+     '<span class="sub">构成</span>人生价值包含<span class="kd">自我价值</span>（对自己生存和发展的价值）和<span class="kd">社会价值</span>（对社会、他人的价值）两个方面。',
+     '二者<span class="kw">相互区别，又密切联系、相互依存</span>：自我价值的实现是为社会创造更大价值的前提；社会价值的实现是个体自我完善、全面发展的保障。<span class="kx">没有社会价值，自我价值就无法存在</span>。',
+     '<span class="sub">评价</span><span class="kw">根本尺度：是否符合社会发展的客观规律、是否促进了历史的进步</span>；今天最重要的是看是否为国家和社会真诚奉献、为人民群众尽心服务。'],
+  s:'「到西部、到基层去」「支教」「在奉献中成长」「自身也得到历练」——1000 题思法分析题 1 第 (1) 问就是这张卡'},
+ {t:'创造有意义的人生',u:'思法_导论与第1章.html#d6',q:[1],kw:['脚踏实地的奋斗','四个大','小我融入大我','得与失','苦与乐','顺与逆'],
+  f:['<span class="sub">青年担当</span>只有<span class="kw">把实现理想的道路建立在脚踏实地的奋斗上</span>，才能放飞青春梦想；要坚定理想信念，<span class="km">志存高远、脚踏实地</span>。',
+     '要<span class="kn">立大志、明大德、成大才、担大任</span>，努力成为堪当民族复兴重任的时代新人。',
+     '<span class="kw">把自己的小我融入祖国的大我、人民的大我之中</span>，与历史同向、与祖国同行、与人民同在。',
+     '<span class="sub">人生矛盾</span><span class="kd">得与失</span>：跳出对个人得失的计较，在奉献社会中实现更大价值；<span class="kd">苦与乐</span>：对立统一、可相互转化，真正的快乐往往由奋斗的艰苦转化而来；<span class="kd">顺与逆</span>：<span class="km">处优而不养尊，受挫而不短志</span>。'],
+  s:'「青春」「奋斗」「挫折」「吃苦」「躺平 / 内卷」「逆境成才」'},
+ {t:'弘扬中国精神',u:'思法_第2_3章.html#d6',kw:['兴国强国之魂','纽带 · 动力 · 支柱','民族精神 ＋ 时代精神','青春行动','改革创新生力军'],
+  f:['<span class="kw">中国精神是兴国强国之魂</span>：是凝聚中国力量的<span class="kd">精神纽带</span>、激发创新创造的<span class="kd">精神动力</span>、推进复兴伟业的<span class="kd">精神支柱</span>。',
+     '中国精神＝<span class="kd">以爱国主义为核心的民族精神</span> ＋ <span class="kd">以改革创新为核心的时代精神</span>。',
+     '青年要<span class="km">将中国精神转化为青春行动</span>，勇做弘扬和践行中国精神的时代先锋。',
+     '<span class="sub">改革创新</span><span class="kw">创新能力是当今国际竞争新优势的集中体现</span>；青年要树立敢于突破陈规、大胆探索未知、勇于创新创造的观念，<span class="km">勇做改革创新的生力军</span>。'],
+  s:'「××精神」（载人航天精神、科学家精神……）「科技攻关」「青年创新创业」'},
+ {t:'爱国主义',u:'思法_第2_3章.html#d7',q:[3],kw:['深厚感情','依存关系','四感统一','道德 · 政治 · 法律','民族精神的核心','具体的、历史的'],
+  f:['<span class="kw">爱国主义体现了人们对自己祖国的深厚感情，揭示了个人对祖国的依存关系</span>。',
+     '是对家园以及民族和文化的<span class="kn">归属感、认同感、尊严感与荣誉感</span>的统一；是调节个人与祖国关系的<span class="kd">道德要求、政治原则和法律规范</span>。',
+     '<span class="kd">爱国主义是民族精神的核心</span>，是中华民族最重要的精神财富；<span class="km">爱国是立德之源、立功之本</span>。',
+     '<span class="kw">爱国主义是具体的、历史的</span>：新时代青年要把自己的理想同祖国的前途、民族的命运紧密联系在一起，为实现中国梦而奋斗。'],
+  s:'「祖国」「家国情怀」「学成归国」「强国有我」「民族自豪感」——1000 题思法分析题 3'},
+ {t:'社会主义核心价值观',u:'思法_第4章.html#d5',kw:['意识形态本质要求','质的规定性','先进性 人民性 真实性','扣好人生扣子','信仰者 传播者 践行者','勤学 修德 明辨 笃实'],
+  f:['核心价值观<span class="kw">体现了社会主义意识形态的本质要求</span>，体现了社会主义制度在思想精神层面的<span class="kd">质的规定性</span>。',
+     '以其<span class="kn">先进性、人民性、真实性</span>站在人类道义制高点上，是当代中国发展进步的精神指引。',
+     '<span class="kw">青年的价值取向决定着未来整个社会的价值取向</span>；<span class="km">人生的扣子从一开始就要扣好</span>。',
+     '青年要做核心价值观的<span class="kd">坚定信仰者、积极传播者、模范践行者</span>；<span class="km">内化为精神追求，外化为自觉行动</span>，做到<span class="kn">勤学、修德、明辨、笃实</span>。'],
+  s:'「诚信」「敬业」「见义勇为」「道德模范」「青年的价值取向」'},
+ {t:'中华传统美德和中国革命道德',u:'思法_第5章.html#d4',q:[4],kw:['深入全民族','四个「提供」','创造性转化 创新性发展','红色基因','四个有利于'],
+  f:['<span class="sub">传统美德</span>已<span class="kd">深入到全民族的思维方式、价值观念、行为方式和风俗习惯之中</span>，具有重要的当代价值。',
+     '当代价值：为今天的道德建设提供启发、为治国理政提供启示、为解决人类道德难题提供启迪、为青年成长提供精神营养。',
+     '要求：<span class="kw">实现中华传统美德的创造性转化、创新性发展</span>，用传统美德滋养社会主义道德建设。',
+     '<span class="sub">革命道德</span><span class="kw">中国革命道德是对中华传统美德的继承和发展，是社会主义道德的红色基因</span>。',
+     '传承它<span class="kn">四个有利于</span>：巩固理想信念 · 培育和践行核心价值观 · 树立正确的道德观 · 培育良好的社会道德风尚。'],
+  s:'「孝老爱亲」「家训」「非遗」「长征 / 延安精神」「红色资源」'},
+ {t:'赓续红色血脉',u:'思法_第5章.html#d5',q:[2,4],kw:['崇尚英雄才会产生英雄','精神文明的升华','三观洗礼','爱国情 强国志 报国行','听党话 跟党走','志气 骨气 底气'],
+  f:['<span class="kw">崇尚英雄才会产生英雄，争做英雄才能英雄辈出</span>。',
+     '国家强盛、民族复兴需要物质文明的积累，<span class="kw">更需要精神文明的升华</span>。',
+     '缅怀英烈事迹、传承英烈精神，是对<span class="kd">世界观、人生观、价值观的洗礼</span>，会转化成<span class="kn">爱国情、强国志、报国行</span>的内生动力，有助于增强历史自信、激扬历史主动精神。',
+     '青年要<span class="km">坚定不移听党话、跟党走</span>，增强做中国人的<span class="kn">志气、骨气、底气</span>，增强对马克思主义、共产主义的信仰，对中国特色社会主义的信念，对民族复兴的信心。'],
+  s:'「烈士纪念日」「礼赞英雄」「红色资源」「革命旧址」「红色基因」——1000 题思法分析题 2、4'},
+ {t:'社会公德',u:'思法_第5章.html#d6',kw:['公共生活需要公共秩序','社会文明的重要标志','遵纪守法','网络交往是现实交往','社会公德在网络空间的延伸'],
+  f:['<span class="sub">公共生活</span><span class="kw">公共生活需要公共秩序</span>；有序的公共生活是社会生产活动的重要基础、提高生活质量的基本保障、<span class="kd">社会文明的重要标志</span>。',
+     '<span class="kw">遵纪守法是全体公民都必须遵循的基本行为准则</span>：既守国家法律法规，也守特定公共场所和单位的纪律规定。',
+     '<span class="sub">网络生活</span><span class="kw">网络交往仍然是人与人的现实交往，网络生活也是人的真实生活</span>。',
+     '网络道德要求是<span class="kd">社会公德在网络空间的运用和扩展</span>：正确使用网络工具，加强网络文明自律，营造良好的网络道德环境。'],
+  s:'「霸座」「景区不文明」「网络暴力」「网络谣言」「网络文明」'},
+ {t:'家风与家庭美德',u:'思法_第5章.html#d8',kw:['社会的基本细胞','社会风气的组成部分','个人修养 ＋ 社会风尚','向上向善','家庭 家教 家风'],
+  f:['<span class="kw">家庭是社会的基本细胞，家风是社会风气的重要组成部分</span>。',
+     '良好家风既影响<span class="kd">家庭成员的个人修养</span>，也影响<span class="kd">整个社会道德风尚的形成</span>。',
+     '无数家庭的美好风尚汇聚起来，便会成为<span class="km">推动整个社会向上向善、维护和谐稳定的深沉力量</span>。',
+     '要求：<span class="kn">注重家庭、注重家教、注重家风</span>。'],
+  s:'「家训」「家书」「最美家庭」「家教」「父母言传身教」'},
+ {t:'志愿服务',u:'思法_第5章.html#d9',q:[1],kw:['核心价值观的重要载体','帮助他人 服务社会','成就感 幸福感','长知识 强本领 增才干'],
+  f:['<span class="kw">志愿服务是培育和弘扬社会主义核心价值观的重要载体</span>。',
+     '对社会：<span class="kd">帮助了他人、服务了社会，推动了社会道德水平的提高</span>；对自己：把服务看作应尽的义务和光荣的职责，<span class="kd">从中获得成就感和幸福感</span>。',
+     '青年要<span class="km">结合自身的能力、专业、特长，在最需要的地方提供优质高效的服务</span>，并在志愿服务中<span class="kn">长知识、强本领、增才干</span>。'],
+  s:'「志愿者」「支教」「赛会志愿」「社区服务」「西部计划」'},
+ {t:'正确的择业观和创业观',u:'思法_第5章.html#d7',kw:['崇高职业理想','服从社会需要','充分择业准备','创业勇气和能力','敢于 ＋ 善于'],
+  f:['<span class="kw">树立崇高的职业理想</span>：职业不仅是谋生的手段，也是奉献社会、完善自身的必要条件。',
+     '<span class="kw">服从社会发展的需要</span>：把个人对职业的期望与社会的需要、现实的可能结合起来。',
+     '<span class="kw">做好充分的择业准备</span>：勤于学习、提高综合素质、练就过硬本领。',
+     '<span class="kw">培养创业的勇气和能力</span>：<span class="km">既要敢于创业，又要善于创业</span>。'],
+  s:'「就业」「到基层就业」「返乡创业」「灵活就业」「考编热」'},
+ {t:'法治和德治',u:'思法_第6章.html#d5',kw:['一手抓法治 一手抓德治','规范作用 · 教化作用','基本方式 · 重要方式','相辅相成 相得益彰','法安天下 德润人心','三要'],
+  f:['国家和社会治理需要法律和道德共同发挥作用：<span class="kw">一手抓法治、一手抓德治</span>，既重视法律的<span class="kd">规范作用</span>，又重视道德的<span class="kd">教化作用</span>。',
+     '<span class="kw">法治是治国理政的基本方式，德治是治国理政的重要方式</span>（<span class="kx">「基本」「重要」别写反</span>）。',
+     '二者共同发挥作用，才能<span class="km">法律与道德相辅相成，法治与德治相得益彰，法安天下，德润人心</span>。',
+     '坚持依法治国和以德治国相结合的<span class="kn">三要</span>：强化道德对法治的支撑作用 · 把道德要求贯彻到法治建设中 · 运用法治手段解决道德领域突出问题。'],
+  s:'「见义勇为立法」「诚信入法」「高空抛物」「彩礼」「道德问题用法律兜底」'},
+ {t:'培养社会主义法治思维',u:'思法_第6章.html#d8',kw:['法治思维的含义','法律至上','普遍 · 优先 · 不可违反','宪法至上','依宪治国 依宪执政','根本法 总依据'],
+  f:['<span class="sub">法治思维</span>法治是<span class="kd">现代化国家的基本要素、中国式现代化的内在要求</span>；法治思维是<span class="kw">以法治价值和法治精神为导向，运用法律原则、法律规则、法律方法思考和处理问题的思维模式</span>。',
+     '<span class="sub">法律至上</span>法律是地位最高、效力最广、强制力最大的规范，表现为<span class="kn">普遍适用、优先适用、不可违反</span>；<span class="km">任何人不论权力大小、职位高低，违法都要依法追究</span>。',
+     '<span class="sub">宪法至上</span><span class="kw">依法治国首先要坚持依宪治国，依法执政首先要坚持依宪执政</span>。',
+     '宪法是<span class="kd">国家的根本法</span>、<span class="kd">国家各项制度和法律法规的总依据</span>，规定了国家的根本制度，具有最高的法律地位、法律权威、法律效力。',
+     '维护宪法权威，就是维护党和人民共同意志的权威；保证宪法实施，就是保证人民根本利益的实现。'],
+  s:'「宪法宣誓」「国家宪法日」「依法维权」「权大还是法大」「领导干部带头守法」'}
+];
+(function(){
+  var K='pol_sx14_v1', st={}; try{st=JSON.parse(localStorage.getItem(K))||{};}catch(e){}
+  var h='<h2>14 张专题卡</h2>';
+  P.forEach(function(p,i){
+    var q=p.q?'<a class="qlink" href="../题库/刷题.html?p=sx&t=e&ch=99&q=sx-e-'+p.q[0]+'">分析题 '+p.q.join('、')+'</a>':'';
+    h+='<div class="card-mem" id="s'+(i+1)+'"><label class="mark"><input type="checkbox" data-k="'+i+'"'+(st[i]?' checked':'')+'> ✓ 背熟</label><h4><span class="n">'+(i+1)+'</span>'+p.t+'</h4>'
+      +'<div class="kws">'+p.kw.map(function(k){return '<span>'+k+'</span>';}).join('')+'</div>'
+      +'<ol>'+p.f.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ol>'
+      +'<div class="sig"><b>⚡ 什么材料调它：</b>'+p.s+'</div>'
+      +'<div class="sig"><a href="../讲义/'+p.u+'">📖 回讲义看完整讲解 →</a></div>'
+      +(q?'<div class="qlinks">✍️ 1000 题里练它：'+q+'</div>':'')+'</div>';
+  });
+  document.getElementById('cards').innerHTML=h;
+  function jump(){
+    var n=0; document.getElementById('jump').innerHTML=P.map(function(p,i){ if(st[i]) n++; return '<a href="#s'+(i+1)+'"'+(st[i]?' class="ok"':'')+'>'+(i+1)+' '+p.t+'</a>'; }).join('');
+    document.getElementById('prog').innerHTML='已背熟 <b>'+n+'</b> / 14';
+  }
+  jump();
+  document.querySelectorAll('.mark input').forEach(function(c){c.onchange=function(){st[c.dataset.k]=c.checked;try{localStorage.setItem(K,JSON.stringify(st));}catch(e){} jump();};});
+})();
+</script>
+<script src="../assets/common.js?v=sect4"></script>
+</body>
+</html>
