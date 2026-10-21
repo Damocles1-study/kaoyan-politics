@@ -7,7 +7,7 @@
 | 路径 | 内容 |
 |---|---|
 | `index.html` | 首页：倒计时、分值地图、模块入口、章节总表（读 `题库/meta.js` ＋ 本机记录动态生成）、60 天计划 |
-| `题库/刷题.html` ＋ `engine.js` | 1000 题刷题引擎 v2，四种刷法 `fm`：`one` 逐题（当场判）/ `flow` 连刷（一页一组、每题当场判）/ `exam` 模考（整组交卷再判，可按考场节奏限时，错题一键再练）/ `read` 背题。URL 参数：`p`(my/mz/xg/sg/sx/all) `t`(s/m/e/all) `ch` `mode`(seq/undone/wrong/rand 随机打乱) `fm` `n`(每组题数 10/20/30/50，0＝整章) `q`(跳到题 id)；旧链接 `view=read` 仍有效 |
+| `题库/刷题.html` ＋ `engine.js` | 1000 题刷题引擎 v2，四种刷法 `fm`：`one` 逐题（当场判）/ `flow` 连刷（一页一组、每题当场判）/ `exam` 模考（整组交卷再判，可按考场节奏限时，错题一键再练）/ `read` 背题。URL 参数：`p`(my/mz/xg/sg/sx/all) `t`(s/m/e/all) `ch` `mode`(seq/undone/wrong/rand 随机打乱) `fm` `n`(每组题数 10/20/30/50，0＝整章) `q`(跳到题 id)；旧链接 `view=read` 仍有效；**从讲义跳来**另带 `ids`(只刷本节这几题) `back`(回程 `../讲义/xx.html#dN`，只认站内讲义) `lab`(节名)——这三个由 `common.js` 运行时给讲义的 `qlink` 补上，**写讲义时照旧只写 `p/t/ch/q`** |
 | `题库/data_*.js` | 五科题库（`window.POL.<科>`），**由 `_build/tools/build_data.py` 生成，别手改** |
 | `题库/meta.js` | 首页 / 统计页用的轻量目录（章名、题号区间、讲义登记、秒杀笔记数） |
 | `题库/统计.html` | 按科按章正确率、错题本入口、记录导出 / 导入（换设备用） |
