@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>政治背诵卡</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  .tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .tools select{font:inherit;font-size:.88rem;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);min-height:38px;width:100%}
+  .flip{margin-top:14px;min-height:260px;border-radius:18px;border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);padding:22px 20px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;position:relative}
+  .flip .src{position:absolute;top:12px;left:16px;font-size:.75rem;color:var(--muted)}
+  .flip .no{position:absolute;top:12px;right:16px;font-size:.75rem;color:var(--muted)}
+  .flip .q{font-family:var(--serif);font-size:1.3rem;line-height:1.6;text-align:center;color:var(--ink)}
+  .flip .a{margin-top:18px;font-size:1.15rem;font-weight:700;text-align:center;color:var(--k-w);line-height:1.7}
+  .flip .hint{margin-top:18px;text-align:center;color:var(--muted);font-size:.85rem}
+  .rate{display:flex;gap:8px;margin-top:12px}
+  .rate .btn{flex:1}
+  .btn.ok{background:var(--green-soft);border-color:var(--green);color:var(--green);font-weight:700}
+  .btn.no{background:var(--red-soft);border-color:var(--red);color:var(--red);font-weight:700}
+  .bar{font-size:.85rem;color:var(--muted);margin-top:10px}
+  .bar b{color:var(--accent)}
+  table.list td:last-child{font-weight:700;color:var(--k-w)}
+  table.list.hide td:last-child span{filter:blur(6px);cursor:pointer}
+  table.list.hide td:last-child span.shown{filter:none}
+  .tabs{display:flex;gap:6px;margin-top:12px}
+  .tabs button{flex:1}
+  .tabs button.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="crumb"><a href="../index.html">← 政治复盘中心</a> · <a href="哲学十六原理.html">🧠 哲学十六原理</a> · <a href="../大题/分析题答题法.html">✍️ 分析题答题法</a></div>
+  <header><h1>背诵卡</h1><p class="sub">选择题靠「认得出」：把每章「一页纸」里的问法 → 答案做成卡片，<b>先自己说答案，再点开核对</b>。「没记住」的卡会更频繁地回来。</p></header>
+  <section class="card">
+    <div class="tools">
+      <select id="selP"></select>
+      <select id="selSrc"></select>
+    </div>
+    <div class="tabs"><button class="btn on" data-m="card">🃏 翻卡自测</button><button class="btn" data-m="list">📋 列表（遮住答案）</button></div>
+    <div id="bar" class="bar"></div>
+    <div id="body"></div>
+  </section>
+  <p class="note">卡片来自各章讲义末尾的「一页纸」，讲义写到哪一章，卡片就自动增加到哪一章。记忆记录只存本机。</p>
+</div>
+<script src="cards.js"></script>
+<script>
+(function(){
+  var C=window.CARDS||[], K='pol_cards_v1', st={}, mode='card', cur=null, shown=false;
+  try{st=JSON.parse(localStorage.getItem(K))||{};}catch(e){}
+  function save(){try{localStorage.setItem(K,JSON.stringify(st));}catch(e){}}
+  var NAMES={my:'马原',mz:'毛中特',xg:'习概',sg:'史纲',sx:'思法'};
+  var $=function(s){return document.querySelector(s);};
+  var ps=[...new Set(C.map(function(c){return c.p;}))];
+  $('#selP').innerHTML=ps.map(function(p){return '<option value="'+p+'">'+NAMES[p]+'</option>';}).join('');
+  function fillSrc(){ var p=$('#selP').value, srcs=[...new Set(C.filter(function(c){return c.p===p;}).map(function(c){return c.src;}))];
+    $('#selSrc').innerHTML='<option value="all">全部章节</option>'+srcs.map(function(s){return '<option>'+s+'</option>';}).join(''); }
+  function pool(){ var p=$('#selP').value, s=$('#selSrc').value; return C.filter(function(c){return c.p===p&&(s==='all'||c.src===s);}); }
+  function weight(c){ var r=st[c.id]; if(!r) return 3; return r.k>=2?0.4:(r.k===1?1:4); }
+  function pick(){ var L=pool(), tot=L.reduce(function(a,c){return a+weight(c);},0), x=Math.random()*tot;
+    for(var i=0;i<L.length;i++){ x-=weight(L[i]); if(x<=0) return L[i]; } return L[0]; }
+  function bar(){ var L=pool(), k=L.filter(function(c){return st[c.id]&&st[c.id].k>=2;}).length, s=L.filter(function(c){return st[c.id];}).length;
+    $('#bar').innerHTML='本组 <b>'+L.length+'</b> 张 · 背过 <b>'+s+'</b> · 已熟（连续记住 2 次）<b>'+k+'</b>'; }
+  function card(){ cur=pick(); shown=false; bar(); if(!cur){$('#body').innerHTML='<p class="note">没有卡片</p>';return;}
+    $('#body').innerHTML='<div class="flip" id="fl"><span class="src">'+cur.src+'</span><span class="no">'+(st[cur.id]?('记住 '+(st[cur.id].k||0)+' 次'):'新卡')+'</span><div class="q">'+cur.q+'</div><div class="hint">先在心里说出答案，再点卡片翻面</div></div>'
+      +'<div class="rate" id="rt" hidden><button class="btn no" data-v="0">✗ 没记住</button><button class="btn ok" data-v="1">✓ 记住了</button></div>'
+      +'<p class="note"><a href="../'+cur.url+'">📖 回讲义看这一章</a></p>';
+    $('#fl').onclick=function(){ if(shown) return; shown=true; $('#fl').querySelector('.hint').outerHTML='<div class="a">'+cur.a+'</div>'; $('#rt').hidden=false; };
+    document.querySelectorAll('#rt button').forEach(function(b){ b.onclick=function(){ var r=st[cur.id]||{n:0,k:0}; r.n++; r.k=b.dataset.v==='1'?(r.k||0)+1:0; r.ts=Date.now(); st[cur.id]=r; save(); card(); }; });
+  }
+  function list(){ bar(); var L=pool();
+    $('#body').innerHTML='<p class="note">答案已遮住，点一下看一个。<button class="btn sm" id="sa">全部显示</button></p><div class="tabwrap"><table class="list hide"><tr><th>问法</th><th>答案</th></tr>'
+      +L.map(function(c){return '<tr><td>'+c.q+'</td><td><span>'+c.a+'</span></td></tr>';}).join('')+'</table></div>';
+    document.querySelectorAll('table.list span').forEach(function(s){s.onclick=function(){s.classList.toggle('shown');};});
+    $('#sa').onclick=function(){document.querySelector('table.list').classList.remove('hide');};
+  }
+  function render(){ document.querySelectorAll('.tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.m===mode);}); mode==='card'?card():list(); }
+  fillSrc(); render();
+  $('#selP').onchange=function(){fillSrc();render();}; $('#selSrc').onchange=render;
+  document.querySelectorAll('.tabs button').forEach(function(b){b.onclick=function(){mode=b.dataset.m;render();};});
+})();
+</script>
+</body>
+</html>

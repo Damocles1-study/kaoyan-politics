@@ -144,3 +144,20 @@ for p,(name,short) in META.items():
              'ns':len(v['s']),'nm':len(v['m']),'ne':len(v['e']),'my':v['my'],'lect':LECT.get(p,{}).get(k,'')} for k,v in sorted(chs.items())]}
 open(OUT+'meta.js','w',encoding='utf-8').write('window.POLMETA='+json.dumps(meta,ensure_ascii=False,separators=(',',':'))+';\n')
 print('meta.js',len(json.dumps(meta,ensure_ascii=False)))
+
+# ---- 背诵卡：从每份讲义的「一页纸」表（table.onepage）自动抽问答卡 → 背诵/cards.js ----
+SUBJ_OF={'马原':'my','毛中特':'mz','习概':'xg','史纲':'sg','思法':'sx'}
+cards=[]; seen_files=set()
+for p,d in LECT_ALL().items():
+    for ch,lf in sorted(d.items()):
+        if lf in seen_files: continue
+        seen_files.add(lf)
+        src=open(ROOT+lf,encoding='utf-8').read()
+        title=_h.unescape(re.sub(r'<[^>]+>',' ',re.search(r'<h1>(.*?)</h1>',src,re.S).group(1))).split()
+        tm=re.search(r'<table class="onepage">(.*?)</table>',src,re.S)
+        if not tm: continue
+        for i,row in enumerate(re.findall(r'<tr><td>(.*?)</td><td>(.*?)</td></tr>',tm.group(1))):
+            q=_h.unescape(re.sub(r'<[^>]+>','',row[0])).strip(); a=_h.unescape(re.sub(r'<[^>]+>','',row[1])).strip()
+            cards.append({'id':f'{lf.split("/")[-1][:-5]}-{i}','p':p,'ch':ch,'src':' '.join(title[:4]),'url':lf,'q':q,'a':a})
+open(ROOT+'背诵/cards.js','w',encoding='utf-8').write('window.CARDS='+json.dumps(cards,ensure_ascii=False,separators=(',',':'))+';\n')
+print('cards',len(cards))

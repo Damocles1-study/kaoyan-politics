@@ -25,6 +25,7 @@
   .row .ls button.wrong{background:var(--red);border-color:var(--red);color:#fff}
   .row .ls button.miss{border:2px dashed var(--green);color:var(--green)}
   .row .mk{width:54px;flex:none;text-align:right;font-size:.8rem;font-weight:700}
+  @media (max-width:420px){ .row .ls button{width:33px;height:34px} .row .pg{width:30px} .row .no{width:36px} .row .mk{width:46px} }
   .row .mk.g{color:var(--green)} .row .mk.r{color:var(--red)} .row .mk.h{color:var(--muted);font-weight:400}
   .row.done-ok .no{color:var(--green)} .row.done-bad .no{color:var(--red)}
   .key-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px}

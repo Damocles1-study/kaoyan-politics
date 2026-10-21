@@ -11,16 +11,27 @@
 | `题库/data_*.js` | 五科题库（`window.POL.<科>`），**由 `_build/tools/build_data.py` 生成，别手改** |
 | `题库/meta.js` | 首页 / 统计页用的轻量目录（章名、题号区间、讲义登记、秒杀笔记数） |
 | `题库/统计.html` | 按科按章正确率、错题本入口、记录导出 / 导入（换设备用） |
+| `题库/答题卡.html` | 题号与纸质书一一对应（自动校验无缺号）；纸上做完逐题点选一键批改；答案速查默认遮挡 |
+| `背诵/背诵卡.html` ＋ `cards.js` | 翻面问答卡，**由构建脚本从每份讲义的 `table.onepage` 自动抽取** |
+| `背诵/哲学十六原理.html` | 34 题马原分析题 16 条原理背诵卡 |
 | `讲义/` | 每章知识讲解（自编）。登记到 `build_data.py` 的 `LECT` 后首页总表自动出链接 |
 | `秒杀/选择题秒杀.html` | 八类干扰项 ＋ 马原易混提法表 |
 | `大题/分析题答题法.html` | 五道大题套路、设问模板、卷面规范、必背清单（勾选存本机） |
-| `assets/style.css` | 共享样式（批注体系 `.key/.mine/.trap/.bg/.link/.img/.miao/.mem` ＋ 大题三层 `.think/.paper/.notekeep`） |
+| `assets/style.css` | 共享样式：批注 `.key/.mine/.trap/.bg/.link/.img/.miao/.mem`、大题三层 `.think/.paper/.notekeep`、**关键词六色** `.kw`红必背 `.kd`蓝概念 `.kt`紫时间人物著作 `.km`绿方法论 `.kx`橙易错 `.kn`金数字 |
+| `assets/common.js` | 讲义自动图例、目录浮钮、背诵自测（遮住彩色关键词） |
 | `_build/` | 题库构建管线（见下） |
 
 ## 本机记录（localStorage）
 
 - `pol_rec_v1`：`{题id: {n 作答次数, ok 最近对错, w 累计错次, streak 连对次数, pick, self(分析题自评), ts}}`；**连对 2 次自动出错题本**。
 - `pol_pref_v1`：上次的科目 / 题型 / 章节 / 视图。`pol_memo_v1`：大题必背清单勾选。
+
+## 写一章的固定流程（续做照这个来）
+
+1. `python3 _build/tools/dump.py <科> <章>` 通读本章全部选择题（紧凑格式）。
+2. 写 `_build/notes/<科>_ch<N>.json` 逐题秒杀笔记（键＝题 id，值可含 HTML 与六色类名）。
+3. 写 `讲义/<科>_第N章.html`：每节 `<section class="card" id="dN">`，节末 `<div class="qlinks">` 里用 `qlink` 写「单选 9–11」「多选 3–4、9」——**构建脚本据此把「本题知识点」反向登记到每道题**；末节放 `table.onepage` 一页纸（自动进背诵卡）。
+4. 在 `build_data.py` 的 `LECT_ALL()` 登记该章 → 重建 → 检查「no lk / no note」都为空、笔记与答案字母零冲突 → 375px 实测 → commit＋push。
 
 ## 重建题库
 
@@ -29,7 +40,8 @@ python3 _build/tools/build_data.py
 ```
 
 - 输入：`_build/work/questions2.json`（试题）＋ `answers.json`（解析）＋ `_build/notes/manual_fix.json`（人工转录的坏页题）＋ `_build/notes/my_notes.json`（⚡秒杀笔记，**每写一章就往这里加**，键＝题 id）。
-- 从头再来：`ocr_book.py`（本机 Vision OCR，走 `osascript -l JavaScript ocr.js`，Swift 工具链坏了别用 swiftc）→ `dual.py`（试题双源择优）→ `parse_q2.py` → `parse_a.py` → `build_data.py`。
+- 从头再来：`ocr_book.py`（本机 Vision OCR，走 `osascript -l JavaScript ocr.js`，Swift 工具链坏了别用 swiftc）→ `dual.py`（试题：版面用 Vision、**文字优先用 PDF 自带文字层**，并学习形近字纠错表 `notes/ocr_fix.json`）→ `parse_q2.py` → `parse_a.py` → `build_data.py`（套用 `ocr_fix.json`＋人工表 `ocr_fix_static.json`）。
+- ⚠️ Vision 在这批扫描上常见形近字错：革→草、国→困/图、为→力、党→觉、善→普、事→小/水/班，以及**「具有」→「只有」这种改变题意的错**——只靠生僻字率抓不到，所以试题以文字层为准。
 - `_build/ocr/`、`_build/work/` 是整本书的识别文字，**只留本地，不推 GitHub**（.gitignore）。
 
 ## 已知事实
