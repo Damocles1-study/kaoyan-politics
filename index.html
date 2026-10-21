@@ -2,13 +2,20 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="2027 考研政治复盘中心：肖秀荣 1000 题在线刷题（逐题 / 连刷 / 模考 / 背题）、知识讲解、背诵卡。">
 <title>政治复盘中心</title>
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=manga1">
 <style>
-  .hero{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;margin-top:16px;position:relative;z-index:1}
-  .cd{font-family:var(--serif);font-size:3rem;font-weight:700;color:#fff;line-height:1}
-  .cdk{font-size:.8rem;color:rgba(255,255,255,.9)}
+  .hero{display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin-top:18px;position:relative;z-index:1}
+  /* 倒计时＝效果字爆炸框（黄底黑边，带硬投影） */
+  .burst{position:relative;z-index:1;padding:20px 28px 16px;text-align:center;filter:drop-shadow(3px 3px 0 #151412);animation:pop .55s var(--spring) .25s both}
+  .burst::before,.burst::after{content:"";position:absolute;clip-path:polygon(50% 0,61% 14%,79% 4%,80% 22%,100% 20%,89% 37%,100% 52%,85% 60%,94% 80%,74% 77%,68% 98%,52% 84%,36% 100%,30% 79%,9% 86%,16% 64%,0 52%,14% 39%,3% 20%,22% 21%,22% 3%,39% 15%)}
+  .burst::after{inset:-12px -16px;z-index:-2;background:#151412}
+  .burst::before{inset:-8px -11px;z-index:-1;background:var(--pop)}
+  .cd{font-family:var(--round);font-style:italic;font-size:3.3rem;font-weight:800;color:#151412;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .cdk{font-size:.74rem;color:#151412;font-weight:800}
+  @media (max-width:600px){ .burst{padding:14px 22px 12px} .cd{font-size:2.5rem} }
   table.score td,table.score th{text-align:center;white-space:nowrap}
   table.score td:first-child{text-align:left;font-weight:700}
   table.score tr.tot td{background:var(--accent-soft);font-weight:700}
@@ -17,26 +24,28 @@
   table.chtab td.sj{white-space:nowrap;background:var(--bg);text-align:center}
   table.chtab td.n{text-align:center;white-space:nowrap}
   table.chtab a{text-decoration:none;font-weight:700}
-  .acc{font-size:.75rem;border-radius:6px;padding:1px 6px;white-space:nowrap;font-weight:700}
+  .acc{font-size:.75rem;border-radius:2px;padding:0 6px;white-space:nowrap;font-weight:800;border:1.5px solid currentColor}
   .acc.g{background:var(--green-soft);color:var(--green)} .acc.y{background:var(--gold-soft);color:var(--gold)} .acc.r{background:var(--red-soft);color:var(--red)}
   .plan li{margin:8px 0}
   .plan b{color:var(--accent)}
-  .today{border:2px solid var(--accent);border-radius:14px;padding:14px 16px;margin-top:12px;background:var(--card)}
-  .today .btn{margin:6px 6px 0 0}
-  .steps{counter-reset:s;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:10px}
-  .steps div{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);font-size:.88rem;position:relative;padding-top:34px}
-  .steps div::before{counter-increment:s;content:counter(s);position:absolute;top:10px;left:14px;width:20px;height:20px;border-radius:6px;background:var(--accent);color:#fff;font-size:.78rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .today{padding:14px 16px;margin-top:4px;border-width:3px;background:var(--card);background-image:var(--tone);background-size:6px 6px;box-shadow:5px 5px 0 var(--accent)}
+  .today .btn{margin:8px 6px 0 0}
+  .today .modes{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;padding-top:10px;border-top:2px dashed var(--line);font-size:.84rem;color:var(--muted);align-items:center;font-weight:700}
+  .steps{counter-reset:s;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-top:12px}
+  .steps div{border:2px solid var(--ink-line);border-radius:4px;padding:12px 14px;background:var(--card);box-shadow:3px 3px 0 var(--drop);font-size:.88rem;position:relative;padding-top:38px}
+  .steps div::before{counter-increment:s;content:counter(s);position:absolute;top:-2px;left:-2px;min-width:34px;height:26px;padding:0 10px 0 8px;background:var(--ink);color:var(--card);font-size:1rem;font-weight:800;font-style:italic;font-family:var(--round);display:flex;align-items:center;clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,0 100%)}
   .steps b{color:var(--ink)}
   .type .ic{font-size:1.4rem;display:block;margin-bottom:4px}
 </style>
 </head>
 <body>
 <div class="wrap">
+<nav class="sitebar" aria-label="切换复盘中心"><span class="lbl">复盘中心</span><span class="me">🏛 政治</span><a href="https://damocles1-study.github.io/kaoyan-english/">📖 英语一复盘中心 ↗</a></nav>
 <header>
   <h1>政治复盘中心</h1>
   <p class="sub">2027 考研 · 基础一般、只求最应试地拿分 · 主线＝<b>肖秀荣 1000 题 ＋ 背诵手册 ＋ 本站</b></p>
   <div class="hero">
-    <div><div class="cd" id="cd">—</div><div class="cdk">距初试（2026-12-19）天数</div></div>
+    <div class="burst"><div class="cd" id="cd">—</div><div class="cdk">距初试（12-19）天</div></div>
     <div class="stats" style="margin-top:0">
       <div class="stat"><div class="v">1163</div><div class="k">1000 题入库</div></div>
       <div class="stat"><div class="v" id="nLect">—</div><div class="k">章讲义已写</div></div>
@@ -57,13 +66,13 @@
   <p class="lead">没学过知识直接刷题会很痛苦，所以每一章都是「<b>先听讲 → 再刷题 → 再背诵</b>」。一章一轮按这四步走：</p>
   <div class="steps">
     <div><b>读讲义</b>（30–40 分钟）：先只看每节的「考点骨架」和绿色「打个比方」，把道理听懂；第二遍再看橙色「秒杀」和紫色「陷阱」。</div>
-    <div><b>刷单选</b>：点一下就判分，看 ⚡ 秒杀笔记 ＋ 📕 肖的简析；不懂就点题目底部「📖 本题知识点」跳回讲义那一节。</div>
+    <div><b>刷单选</b>：四种刷法任选——<b>逐题</b>（点一下就判）、<b>连刷</b>（一页一组、每题当场判）、<b>模考</b>（整组做完交卷再判，可限时）、<b>背题</b>（答案直接摊开）。看 ⚡ 秒杀 ＋ 📕 肖的简析，不懂就点「📖 本题知识点」跳回讲义。</div>
     <div><b>刷多选</b>：勾完再点提交（政治多选少选多选都不得分）。做纸质书的话，到「🗂 答题卡」按书上题号逐题点选、一键批改。</div>
     <div><b>第二天清错题</b>：只刷错题本，连续做对 2 次自动出本；顺手翻「🃏 背诵卡」把本章一页纸过一遍。</div>
   </div>
   <h3>页面上的颜色是什么意思</h3>
   <div class="legend"><span class="kw">红·必背结论</span><span class="kd">蓝·概念定义</span><span class="kt">紫·时间人物著作会议</span><span class="km">绿·方法论与做法</span><span class="kx">橙·易混易错</span><span class="kn">金·数字口诀</span></div>
-  <p class="note">讲义页右上方有「<b>背诵自测</b>」开关：打开后所有彩色关键词变模糊，点一下才显示——可以直接拿讲义默写。题库里题干最后一句的<b>否定词标红底</b>（防止看漏「不正确的是」），题眼标橙线；肖的解析里「A 正确」绿、「B 错误」红自动着色。</p>
+  <p class="note">讲义页的颜色图例旁有「<b>🙈 背诵模式</b>」：打开后彩色关键词变成同色挖空条（看得出是哪类、看不到字），点一下揭开；可以只遮某几种颜色、随机遮一半、「揭开下一个」逐个默写——直接拿讲义当默写纸。题库里题干最后一句的<b>否定词标红底</b>（防止看漏「不正确的是」），题眼标橙线；肖的解析里「A 正确」绿、「B 错误」红自动着色。</p>
   <p class="note">做题记录只存在当前浏览器里。手机和电脑之间换着用，去「📊 统计」页底部「导出 / 导入」搬一下。</p>
 </section>
 
@@ -86,11 +95,11 @@
 <section class="card">
   <h2>模块</h2>
   <div class="types">
-    <div class="type"><span class="ic">📚</span><h3><a href="题库/刷题.html">1000 题题库</a><span class="st st-on">五科全</span></h3><p>1148 道选择 ＋ 15 道分析，手机随手刷。顺序刷 / 只刷没做的 / 错题本 / 随机 20 题；背题模式直接翻答案。</p></div>
+    <div class="type"><span class="ic">📚</span><h3><a href="题库/刷题.html">1000 题题库</a><span class="st st-on">五科全</span></h3><p>1148 道选择 ＋ 15 道分析。四种刷法：<b>逐题</b> · <b>连刷</b>（当场判）· <b>模考</b>（交卷再判、可限时、错题一键再练）· <b>背题</b>；范围可选顺序 / 没做过 / 错题本 / 随机打乱。</p></div>
     <div class="type"><span class="ic">🗂</span><h3><a href="题库/答题卡.html">答题卡 · 答案速查</a><span class="st st-on">可用</span></h3><p>题号与纸质书一一对应、自动校验无缺号。在书上做完来这里点选答案一键批改；答案速查默认遮住，点开才看。</p></div>
     <div class="type"><span class="ic">📊</span><h3><a href="题库/统计.html">统计 · 错题本</a><span class="st st-on">可用</span></h3><p>按科按章看正确率（对照肖的达标线：单选 70%、多选 50–55%），一键只刷错题；换设备导出导入记录。</p></div>
     <div class="type"><span class="ic">📖</span><h3><a href="讲义/马原_导论与第1章.html">知识讲解</a><span class="st st-part" id="stLect">马原全</span></h3><p>每章先「讲一遍」：考点骨架 ＋ 打个比方 ＋ 秒杀 ＋ 陷阱 ＋ 大题框架 ＋ 一页纸；每节直达对应题，每题也能跳回讲义。</p></div>
-    <div class="type"><span class="ic">🃏</span><h3><a href="背诵/背诵卡.html">背诵卡</a><span class="st st-on">随讲义增加</span></h3><p>各章「一页纸」自动做成问答卡：先说答案再翻面，「没记住」的卡更常出现。也有遮住答案的列表模式。</p></div>
+    <div class="type"><span class="ic">🃏</span><h3><a href="背诵/背诵卡.html">背诵卡</a><span class="st st-on">随讲义增加</span></h3><p>各章「一页纸」自动做成问答卡：3D 翻面、没记住 / 模糊 / 记住三档自评，智能 · 顺序 · 只背不熟三种出卡；另有挖空遮挡的列表模式。</p></div>
     <div class="type"><span class="ic">🧠</span><h3><a href="背诵/哲学十六原理.html">哲学十六原理</a><span class="st st-on">可用</span></h3><p>34 题马原分析题专用：16 条原理的关键词、背诵框架、「什么材料调它」，可遮住默写、勾选背熟进度。</p></div>
     <div class="type"><span class="ic">⚡</span><h3><a href="秒杀/选择题秒杀.html">选择题秒杀库</a><span class="st st-part">第一版</span></h3><p>八类干扰项的识别法、多选答案个数统计、马原「根本 / 核心 / 基石 / 前提」易混提法表。</p></div>
     <div class="type"><span class="ic">✍️</span><h3><a href="大题/分析题答题法.html">分析题答题法</a><span class="st st-part">第一版</span></h3><p>五道大题各自的套路、四种设问的答题骨架、卷面规范、一道原题按「思路 → 卷面 → 批注」示范，以及必背清单。</p></div>
@@ -131,6 +140,7 @@
 <p class="footer">兄弟中心：<a href="https://damocles1-study.github.io/kaoyan-408/">408</a> · <a href="https://damocles1-study.github.io/math1-review-center/">数学一</a> · <a href="https://damocles1-study.github.io/kaoyan-english/">英语一</a>。讲义与秒杀为本站自编；题目与解析版权归原作者，本站仅供个人复习，如有侵权联系即删。</p>
 </div>
 <script src="题库/meta.js"></script>
+<script src="assets/common.js?v=manga1"></script>
 <script>
 (function(){
   var d=Math.ceil((new Date('2026-12-19T08:30:00+08:00')-new Date())/864e5);
@@ -167,7 +177,10 @@
     t.innerHTML='下一站：<span class="subj '+next.p+'">'+next.S.short+'</span><b>'+c.name+'</b>（已做 '+next.dn+' / '+next.all+'）<br>'
       +(c.lect?'<a class="btn" href="'+c.lect+'">📖 先读讲义</a>':'<span class="note">本章讲义还在写，先直接刷题、看 📕简析。</span>')
       +'<a class="btn pri" href="'+u+'">继续刷没做过的 →</a><a class="btn" href="题库/答题卡.html?p='+next.p+'&ch='+c.ch+'&t='+(c.ns?'s':'m')+'">🗂 纸上做用答题卡</a>'
-      +(wrong?'<a class="btn" href="题库/刷题.html?p=all&t=all&mode=wrong">错题本 '+wrong+' 题</a>':'');
+      +(wrong?'<a class="btn" href="题库/刷题.html?p=all&t=all&mode=wrong">错题本 '+wrong+' 题</a>':'')
+      +'<div class="modes">换个刷法：<a class="btn sm" href="题库/刷题.html?p='+next.p+'&ch='+c.ch+'&mode=seq&fm=flow&n=20&t='+(c.ns?'s':'m')+'">⚡ 本章连刷</a>'
+      +'<a class="btn sm" href="题库/刷题.html?p='+next.p+'&ch='+c.ch+'&mode=rand&fm=exam&n=20&t='+(c.ns?'s':'m')+'">📝 随机 20 题模考</a>'
+      +'<a class="btn sm" href="题库/刷题.html?p='+next.p+'&ch='+c.ch+'&mode=seq&fm=read&n=20&t='+(c.ns?'s':'m')+'">📖 本章背题</a></div>';
   } else t.textContent='全部章节都刷过一遍了，去错题本收尾吧。';
 })();
 </script>

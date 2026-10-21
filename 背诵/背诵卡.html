@@ -2,51 +2,82 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>政治背诵卡</title>
-<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/style.css?v=manga1">
 <style>
   .tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .tools select{font:inherit;font-size:.88rem;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);min-height:38px;width:100%}
-  .flip{margin-top:14px;min-height:260px;border-radius:18px;border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);padding:22px 20px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;position:relative}
-  .flip .src{position:absolute;top:12px;left:16px;font-size:.75rem;color:var(--muted)}
-  .flip .no{position:absolute;top:12px;right:16px;font-size:.75rem;color:var(--muted)}
-  .flip .q{font-family:var(--serif);font-size:1.3rem;line-height:1.6;text-align:center;color:var(--ink)}
-  .flip .a{margin-top:18px;font-size:1.15rem;font-weight:700;text-align:center;color:var(--k-w);line-height:1.7}
-  .flip .hint{margin-top:18px;text-align:center;color:var(--muted);font-size:.85rem}
-  .rate{display:flex;gap:8px;margin-top:12px}
+  .tools select{width:100%;min-width:0}
+  #selOrd{grid-column:1 / -1}
+  @media (min-width:700px){ .tools{grid-template-columns:1fr 1.6fr 1.4fr} #selOrd{grid-column:auto} }
+  .seg{margin-top:12px}
+  .bar{display:flex;align-items:center;gap:10px;font-size:.84rem;color:var(--muted);margin-top:14px;font-variant-numeric:tabular-nums;font-weight:600}
+  .bar b{color:var(--accent);font-family:var(--round);font-style:italic;font-size:1.08em}
+  .prog{flex:1;height:12px;border:2px solid var(--ink-line);background:var(--card);overflow:hidden;min-width:60px}
+  .prog i{display:block;height:100%;background:var(--green);background-image:repeating-linear-gradient(-45deg,transparent 0 4px,rgba(0,0,0,.18) 4px 6px);transition:width .5s var(--ease)}
+  /* 3D 翻面卡：正面是一格分镜，背面是带集中线的「揭晓」格 */
+  .stage{perspective:1400px;margin-top:16px}
+  .fc{position:relative;min-height:280px;transform-style:preserve-3d;transition:transform .6s var(--spring);cursor:pointer;display:grid}
+  .fc.on{transform:rotateY(180deg)}
+  .face{grid-area:1/1;border-radius:6px;padding:44px 22px 26px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;overflow:hidden;
+    -webkit-backface-visibility:hidden;backface-visibility:hidden;background:var(--card);border:3px solid var(--ink-line);box-shadow:6px 6px 0 var(--drop);position:relative;isolation:isolate}
+  .face.front::after{content:"";position:absolute;right:0;bottom:0;width:55%;height:60%;z-index:-1;background:var(--tone);
+    -webkit-mask-image:linear-gradient(to top left,#000,transparent 70%);mask-image:linear-gradient(to top left,#000,transparent 70%)}
+  .face.back{transform:rotateY(180deg)}
+  .face.back::before{content:"";position:absolute;inset:-50%;z-index:-1;
+    background:repeating-conic-gradient(from 0deg at 50% 50%,color-mix(in srgb,var(--accent) 16%,transparent) 0deg 1.3deg,transparent 1.3deg 6deg);
+    -webkit-mask-image:radial-gradient(circle,transparent 16%,#000 50%);mask-image:radial-gradient(circle,transparent 16%,#000 50%)}
+  .face .src{position:absolute;top:0;left:0;font-size:.74rem;font-weight:800;color:var(--card);background:var(--ink);padding:2px 12px 2px 10px;clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+  .face .no{position:absolute;top:8px;right:12px;font-size:.75rem;color:var(--muted);font-weight:700}
+  .face .q{font-family:var(--serif);font-size:1.42rem;font-weight:900;line-height:1.6;color:var(--ink)}
+  .face .qs{font-size:.9rem;color:var(--muted);margin-bottom:12px;font-weight:600}
+  .face .a{font-size:1.22rem;font-weight:900;color:var(--k-w);line-height:1.75;background:var(--card);border:2.5px solid var(--ink-line);border-radius:18px;padding:8px 16px;box-shadow:3px 3px 0 var(--drop)}
+  .face .hint{margin-top:20px;color:var(--muted);font-size:.84rem}
+  .face .hint kbd,.note kbd{font:inherit;font-size:.78rem;border:1.5px solid var(--ink-line);border-bottom-width:3px;border-radius:3px;padding:0 5px;background:var(--card)}
+  .stage.out-l .fc{animation:outL .3s var(--ease) forwards} .stage.out-r .fc{animation:outR .3s var(--ease) forwards}
+  .stage.in .fc{animation:cardIn .42s var(--spring)}
+  @keyframes outL{to{transform:translateX(-80px) rotateY(180deg) rotateZ(-6deg);opacity:0}}
+  @keyframes outR{to{transform:translateX(80px) rotateY(180deg) rotateZ(6deg);opacity:0}}
+  @keyframes cardIn{from{transform:translateY(22px) rotate(-2deg) scale(.95);opacity:0}}
+  .rate{display:flex;gap:10px;margin-top:16px;transition:opacity .25s,transform .3s var(--spring)}
+  .rate.off{opacity:0;transform:translateY(10px);pointer-events:none}
   .rate .btn{flex:1}
-  .btn.ok{background:var(--green-soft);border-color:var(--green);color:var(--green);font-weight:700}
-  .btn.no{background:var(--red-soft);border-color:var(--red);color:var(--red);font-weight:700}
-  .bar{font-size:.85rem;color:var(--muted);margin-top:10px}
-  .bar b{color:var(--accent)}
+  .btn.no{background:var(--red-soft);color:var(--red)}
+  .btn.mid{background:var(--gold-soft);color:var(--gold)}
+  .btn.ok{background:var(--green-soft);color:var(--green)}
+  .done{text-align:center;padding:30px 10px}
+  .done .big{font-family:var(--serif);font-size:2.2rem;font-weight:900}
+  /* 遮挡列表 */
+  .ltools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+  .ltools .cnt{margin-left:auto;font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums;font-weight:700}
+  table.list{margin-top:12px}
+  table.list td:first-child{width:46%;color:var(--ink2)}
   table.list td:last-child{font-weight:700;color:var(--k-w)}
-  table.list.hide td:last-child span{filter:blur(6px);cursor:pointer}
-  table.list.hide td:last-child span.shown{filter:none}
-  .tabs{display:flex;gap:6px;margin-top:12px}
-  .tabs button{flex:1}
-  .tabs button.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
+  table.list td:last-child span{--mc:var(--k-w);padding:1px 4px}
+  table.list .lv{font-size:.7rem;margin-left:4px;vertical-align:1px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="crumb"><a href="../index.html">← 政治复盘中心</a> · <a href="哲学十六原理.html">🧠 哲学十六原理</a> · <a href="../大题/分析题答题法.html">✍️ 分析题答题法</a></div>
-  <header><h1>背诵卡</h1><p class="sub">选择题靠「认得出」：把每章「一页纸」里的问法 → 答案做成卡片，<b>先自己说答案，再点开核对</b>。「没记住」的卡会更频繁地回来。</p></header>
+  <div class="crumb"><a href="../index.html">← 政治复盘中心</a><a href="哲学十六原理.html">🧠 哲学十六原理</a><a href="../大题/分析题答题法.html">✍️ 分析题答题法</a></div>
+  <header><h1>背诵卡</h1><p class="sub">选择题靠「认得出」：把每章「一页纸」里的问法 → 答案做成卡片，<b>先自己说答案，再翻面核对</b>。「没记住」的卡会更频繁地回来。</p></header>
   <section class="card">
     <div class="tools">
-      <select id="selP"></select>
-      <select id="selSrc"></select>
+      <select id="selP" aria-label="科目"></select>
+      <select id="selSrc" aria-label="章节"></select>
+      <select id="selOrd" aria-label="出卡方式"><option value="smart">🧠 智能（没记住的多出现）</option><option value="seq">➡️ 按顺序过一遍</option><option value="weak">🎯 只背还不熟的</option></select>
     </div>
-    <div class="tabs"><button class="btn on" data-m="card">🃏 翻卡自测</button><button class="btn" data-m="list">📋 列表（遮住答案）</button></div>
+    <div class="seg" id="tabs"><button data-m="card" class="on">🃏 翻卡自测</button><button data-m="list">📋 遮挡列表</button></div>
     <div id="bar" class="bar"></div>
     <div id="body"></div>
   </section>
-  <p class="note">卡片来自各章讲义末尾的「一页纸」，讲义写到哪一章，卡片就自动增加到哪一章。记忆记录只存本机。</p>
+  <p class="note">卡片来自各章讲义末尾的「一页纸」，讲义写到哪一章，卡片就自动增加到哪一章。电脑快捷键：<kbd>空格</kbd> 翻面 · <kbd>1</kbd> 没记住 · <kbd>2</kbd> 模糊 · <kbd>3</kbd> 记住了。记忆记录只存本机。</p>
 </div>
 <script src="cards.js"></script>
+<script src="../assets/common.js?v=manga1"></script>
 <script>
 (function(){
-  var C=window.CARDS||[], K='pol_cards_v1', st={}, mode='card', cur=null, shown=false;
+  var C=window.CARDS||[], K='pol_cards_v1', st={}, mode='card', cur=null, flipped=false, seqI=0, lastId=null, shuf=false;
   try{st=JSON.parse(localStorage.getItem(K))||{};}catch(e){}
   function save(){try{localStorage.setItem(K,JSON.stringify(st));}catch(e){}}
   var NAMES={my:'马原',mz:'毛中特',xg:'习概',sg:'史纲',sx:'思法'};
@@ -55,29 +86,78 @@
   $('#selP').innerHTML=ps.map(function(p){return '<option value="'+p+'">'+NAMES[p]+'</option>';}).join('');
   function fillSrc(){ var p=$('#selP').value, srcs=[...new Set(C.filter(function(c){return c.p===p;}).map(function(c){return c.src;}))];
     $('#selSrc').innerHTML='<option value="all">全部章节</option>'+srcs.map(function(s){return '<option>'+s+'</option>';}).join(''); }
-  function pool(){ var p=$('#selP').value, s=$('#selSrc').value; return C.filter(function(c){return c.p===p&&(s==='all'||c.src===s);}); }
-  function weight(c){ var r=st[c.id]; if(!r) return 3; return r.k>=2?0.4:(r.k===1?1:4); }
-  function pick(){ var L=pool(), tot=L.reduce(function(a,c){return a+weight(c);},0), x=Math.random()*tot;
-    for(var i=0;i<L.length;i++){ x-=weight(L[i]); if(x<=0) return L[i]; } return L[0]; }
-  function bar(){ var L=pool(), k=L.filter(function(c){return st[c.id]&&st[c.id].k>=2;}).length, s=L.filter(function(c){return st[c.id];}).length;
-    $('#bar').innerHTML='本组 <b>'+L.length+'</b> 张 · 背过 <b>'+s+'</b> · 已熟（连续记住 2 次）<b>'+k+'</b>'; }
-  function card(){ cur=pick(); shown=false; bar(); if(!cur){$('#body').innerHTML='<p class="note">没有卡片</p>';return;}
-    $('#body').innerHTML='<div class="flip" id="fl"><span class="src">'+cur.src+'</span><span class="no">'+(st[cur.id]?('记住 '+(st[cur.id].k||0)+' 次'):'新卡')+'</span><div class="q">'+cur.q+'</div><div class="hint">先在心里说出答案，再点卡片翻面</div></div>'
-      +'<div class="rate" id="rt" hidden><button class="btn no" data-v="0">✗ 没记住</button><button class="btn ok" data-v="1">✓ 记住了</button></div>'
-      +'<p class="note"><a href="../'+cur.url+'">📖 回讲义看这一章</a></p>';
-    $('#fl').onclick=function(){ if(shown) return; shown=true; $('#fl').querySelector('.hint').outerHTML='<div class="a">'+cur.a+'</div>'; $('#rt').hidden=false; };
-    document.querySelectorAll('#rt button').forEach(function(b){ b.onclick=function(){ var r=st[cur.id]||{n:0,k:0}; r.n++; r.k=b.dataset.v==='1'?(r.k||0)+1:0; r.ts=Date.now(); st[cur.id]=r; save(); card(); }; });
+  function lvl(c){ var r=st[c.id]; return !r?-1:(r.k||0); }            // -1 新卡 · 0 没记住 · 1 模糊 · ≥2 已熟
+  function base(){ var p=$('#selP').value, s=$('#selSrc').value; return C.filter(function(c){return c.p===p&&(s==='all'||c.src===s);}); }
+  function pool(){ var L=base(); return $('#selOrd').value==='weak'?L.filter(function(c){return lvl(c)>=0&&lvl(c)<2;}):L; }
+  function weight(c){ var k=lvl(c); return k<0?3:k>=2?0.4:k===1?1.5:4; }
+  function pick(){
+    var L=pool(); if(!L.length) return null;
+    if($('#selOrd').value==='seq'){ return seqI<L.length?L[seqI]:null; }
+    var M=L.length>1?L.filter(function(c){return c.id!==lastId;}):L;
+    var tot=M.reduce(function(a,c){return a+weight(c);},0), x=Math.random()*tot;
+    for(var i=0;i<M.length;i++){ x-=weight(M[i]); if(x<=0) return M[i]; } return M[M.length-1];
   }
-  function list(){ bar(); var L=pool();
-    $('#body').innerHTML='<p class="note">答案已遮住，点一下看一个。<button class="btn sm" id="sa">全部显示</button></p><div class="tabwrap"><table class="list hide"><tr><th>问法</th><th>答案</th></tr>'
-      +L.map(function(c){return '<tr><td>'+c.q+'</td><td><span>'+c.a+'</span></td></tr>';}).join('')+'</table></div>';
-    document.querySelectorAll('table.list span').forEach(function(s){s.onclick=function(){s.classList.toggle('shown');};});
-    $('#sa').onclick=function(){document.querySelector('table.list').classList.remove('hide');};
+  function bar(){
+    var L=base(), k=L.filter(function(c){return lvl(c)>=2;}).length, s=L.filter(function(c){return lvl(c)>=0;}).length, w=L.filter(function(c){return lvl(c)>=0&&lvl(c)<2;}).length;
+    var seq=$('#selOrd').value==='seq'&&mode==='card'?' · 本轮 <b>'+Math.min(seqI+1,pool().length)+'</b> / '+pool().length:'';
+    $('#bar').innerHTML='<span>本组 <b>'+L.length+'</b> 张 · 背过 '+s+' · 还不熟 '+w+' · 已熟 <b>'+k+'</b>'+seq+'</span><span class="prog"><i style="width:'+(L.length?100*k/L.length:0)+'%"></i></span>';
   }
-  function render(){ document.querySelectorAll('.tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.m===mode);}); mode==='card'?card():list(); }
-  fillSrc(); render();
-  $('#selP').onchange=function(){fillSrc();render();}; $('#selSrc').onchange=render;
-  document.querySelectorAll('.tabs button').forEach(function(b){b.onclick=function(){mode=b.dataset.m;render();};});
+  function tagOf(c){ var k=lvl(c); return k<0?'新卡':k===0?'上次没记住':k===1?'上次模糊':'已熟 · 记住 '+k+' 次'; }
+  function card(anim){
+    cur=pick(); flipped=false; bar();
+    if(!cur){
+      var L=pool();
+      $('#body').innerHTML=$('#selOrd').value==='seq'&&L.length
+        ?'<div class="done drop-in"><div class="big">🎉 本轮过完</div><p class="note">'+L.length+' 张卡已全部翻过一遍。</p><button class="btn pri" id="again">再来一轮</button> <button class="btn" id="toWeak">只背还不熟的</button></div>'
+        :'<div class="done drop-in"><div class="big">✨</div><p class="note">'+($('#selOrd').value==='weak'?'这一组没有「还不熟」的卡了，换成智能模式继续巩固吧。':'没有卡片')+'</p></div>';
+      var ag=$('#again'); if(ag) ag.onclick=function(){seqI=0;card(true);};
+      var tw=$('#toWeak'); if(tw) tw.onclick=function(){$('#selOrd').value='weak';seqI=0;card(true);};
+      return;
+    }
+    lastId=cur.id;
+    $('#body').innerHTML='<div class="stage'+(anim?' in':'')+'" id="stage"><div class="fc" id="fc" role="button" tabindex="0" aria-label="翻面">'
+      +'<div class="face front"><span class="src">'+cur.src+'</span><span class="no">'+tagOf(cur)+'</span><div class="q">'+cur.q+'</div><div class="hint">先在心里说出答案，再点卡片翻面（<kbd>空格</kbd>）</div></div>'
+      +'<div class="face back"><span class="src">'+cur.src+'</span><span class="no"><a href="../'+cur.url+'">📖 回讲义</a></span><div class="qs">'+cur.q+'</div><div class="a">'+cur.a+'</div></div>'
+      +'</div></div>'
+      +'<div class="rate off" id="rt"><button class="btn no" data-v="0">✗ 没记住</button><button class="btn mid" data-v="1">〜 模糊</button><button class="btn ok" data-v="2">✓ 记住了</button></div>';
+    $('#fc').onclick=function(e){ if(e.target.closest('a')) return; flip(); };
+    document.querySelectorAll('#rt button').forEach(function(b){ b.onclick=function(){ rate(+b.dataset.v); }; });
+  }
+  function flip(){ var fc=$('#fc'); if(!fc) return; flipped=!flipped; fc.classList.toggle('on',flipped); if(flipped) $('#rt').classList.remove('off'); }
+  function rate(v){
+    if(!cur||!flipped) return;
+    var r=st[cur.id]||{n:0,k:0}; r.n++; r.k=v===2?(r.k||0)+1:v; r.ts=Date.now(); st[cur.id]=r; save();
+    if($('#selOrd').value==='seq') seqI++;
+    var sg=$('#stage'); sg.classList.remove('in'); sg.classList.add(v===2?'out-r':'out-l');
+    $('#rt').classList.add('off');
+    setTimeout(function(){card(true);},280);
+  }
+  function list(){
+    bar(); var L=pool().slice();
+    if(shuf) for(var i=L.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=L[i];L[i]=L[j];L[j]=t;}
+    $('#body').innerHTML='<div class="ltools"><button class="btn sm pri" id="nx">揭开下一条</button><button class="btn sm" id="sa">全部揭开</button><button class="btn sm" id="rh">重新遮住</button><button class="btn sm" id="sf">'+(shuf?'恢复顺序':'🔀 打乱顺序')+'</button><span class="cnt" id="cnt"></span></div>'
+      +'<div class="tabwrap drop-in"><table class="list"><tr><th>问法</th><th>答案（点一下揭开）</th></tr>'
+      +L.map(function(c){ var k=lvl(c), t=k<0?'':k>=2?'<span class="pill green lv">熟</span>':'<span class="pill red lv">'+(k===1?'模糊':'没记住')+'</span>';
+        return '<tr><td>'+c.q+t+'</td><td><span class="rv">'+c.a+'</span></td></tr>';}).join('')+'</table></div>';
+    var all=[].slice.call(document.querySelectorAll('table.list .rv'));
+    function cnt(){ $('#cnt').textContent='已揭开 '+all.filter(function(s){return s.classList.contains('shown');}).length+' / '+all.length; }
+    all.forEach(function(s){s.onclick=function(){s.classList.toggle('shown');cnt();};});
+    $('#sa').onclick=function(){all.forEach(function(s){s.classList.add('shown');});cnt();};
+    $('#rh').onclick=function(){all.forEach(function(s){s.classList.remove('shown');});cnt();};
+    $('#sf').onclick=function(){shuf=!shuf;list();};
+    $('#nx').onclick=function(){ var s=all.filter(function(x){return !x.classList.contains('shown');})[0]; if(!s) return; s.classList.add('shown'); cnt();
+      var r=s.getBoundingClientRect(); if(r.top<60||r.bottom>innerHeight-60) s.scrollIntoView({block:'center',behavior:'smooth'}); };
+    cnt();
+  }
+  function render(anim){ document.querySelectorAll('#tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.m===mode);}); mode==='card'?card(anim):list(); }
+  fillSrc(); render(true);
+  $('#selP').onchange=function(){fillSrc();seqI=0;render(true);}; $('#selSrc').onchange=function(){seqI=0;render(true);}; $('#selOrd').onchange=function(){seqI=0;render(true);};
+  document.querySelectorAll('#tabs button').forEach(function(b){b.onclick=function(){mode=b.dataset.m;render(true);};});
+  document.addEventListener('keydown',function(e){
+    if(mode!=='card'||/SELECT|INPUT|TEXTAREA/.test(e.target.tagName)||e.metaKey||e.ctrlKey) return;
+    if(e.key===' '||e.key==='Enter'){ e.preventDefault(); flip(); }
+    else if(flipped&&(e.key==='1'||e.key==='2'||e.key==='3')) rate(+e.key-1);
+  });
 })();
 </script>
 </body>

@@ -4,44 +4,46 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>答题卡与答案速查</title>
-<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/style.css?v=manga1">
 <style>
   .tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .tools select{font:inherit;font-size:.88rem;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);min-height:38px;width:100%;min-width:0}
+  .tools select{width:100%;min-width:0}
   #selCh{grid-column:1 / -1}
-  .tabs{display:flex;gap:6px;margin:12px 0}
-  .tabs button{flex:1}
-  .tabs button.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;font-weight:700}
-  .chkline{font-size:.86rem;padding:8px 12px;border-radius:10px;margin:8px 0}
+  .seg{margin:14px 0 12px}
+  .chkline{font-size:.86rem;padding:7px 12px;border:2px solid var(--ink-line);border-radius:4px;margin:8px 0;font-weight:700}
   .chkline.ok{background:var(--green-soft);color:var(--green)} .chkline.bad{background:var(--red-soft);color:var(--red)}
-  .row{display:flex;align-items:center;gap:6px;padding:7px 4px;border-bottom:1px solid var(--line)}
-  .row .no{width:46px;flex:none;font-weight:800;font-family:var(--serif);color:var(--ink)}
+  /* 答题卡＝マークシート：椭圆涂卡格，选中涂黑 */
+  .row{display:flex;align-items:center;gap:6px;padding:6px 4px;border-bottom:1px dashed var(--line)}
+  .row .no{width:46px;flex:none;font-weight:800;font-style:italic;font-family:var(--round);font-size:1.05rem;color:var(--ink)}
   .row .no a{color:inherit;text-decoration:none}
   .row .pg{width:44px;flex:none;font-size:.72rem;color:var(--muted)}
-  .row .ls{display:flex;gap:5px;flex:1}
-  .row .ls button{width:38px;height:36px;border-radius:9px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-weight:700;font-family:inherit;cursor:pointer}
-  .row .ls button.sel{background:var(--blue);border-color:var(--blue);color:#fff}
-  .row .ls button.right{background:var(--green);border-color:var(--green);color:#fff}
-  .row .ls button.wrong{background:var(--red);border-color:var(--red);color:#fff}
-  .row .ls button.miss{border:2px dashed var(--green);color:var(--green)}
-  .row .mk{width:54px;flex:none;text-align:right;font-size:.8rem;font-weight:700}
-  @media (max-width:420px){ .row .ls button{width:33px;height:34px} .row .pg{width:30px} .row .no{width:36px} .row .mk{width:46px} }
-  .row .mk.g{color:var(--green)} .row .mk.r{color:var(--red)} .row .mk.h{color:var(--muted);font-weight:400}
+  .row .ls{display:flex;gap:6px;flex:1}
+  .row .ls button{width:38px;height:30px;border-radius:50%;border:2px solid var(--ink-line);background:var(--card);color:var(--ink);font-weight:800;font-size:.82rem;font-family:var(--round);cursor:pointer;transition:transform .1s}
+  .row .ls button:active{transform:scale(.9)}
+  .row .ls button.sel{background:var(--ink);color:var(--card)}
+  .row .ls button.right{background:var(--green);color:#fff}
+  .row .ls button.wrong{background:var(--red);color:#fff}
+  .row .ls button.miss{border:2.5px dashed var(--green);color:var(--green)}
+  .row .mk{width:54px;flex:none;text-align:right;font-size:.82rem;font-weight:900}
+  @media (max-width:420px){ .row .ls button{width:33px;height:29px} .row .pg{width:30px} .row .no{width:36px} .row .mk{width:46px} }
+  .row .mk.g{color:var(--accent);font-family:var(--serif);font-size:1.1rem} .row .mk.r{color:var(--red)} .row .mk.h{color:var(--muted);font-weight:500}
   .row.done-ok .no{color:var(--green)} .row.done-bad .no{color:var(--red)}
-  .key-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px}
-  .kc{border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center;background:var(--card);cursor:pointer}
-  .kc .n{font-size:.76rem;color:var(--muted)}
-  .kc .a{font-weight:800;font-size:1rem;color:var(--k-w);letter-spacing:.05em}
-  .kc.hid .a{filter:blur(6px)}
-  .kc.g{border-color:var(--green)} .kc.r{border-color:var(--red);background:var(--red-soft)}
-  .sticky{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 0;display:flex;gap:8px;flex-wrap:wrap;align-items:center;z-index:3}
-  #score{font-weight:700}
-  .chh{margin:16px 0 6px;font-weight:800;color:var(--accent);font-size:.95rem}
+  .key-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px}
+  .kc{border:2px solid var(--ink-line);border-radius:3px;padding:5px 4px;text-align:center;background:var(--card);cursor:pointer;box-shadow:2px 2px 0 var(--drop);transition:transform .1s,box-shadow .1s}
+  .kc:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--drop)}
+  .kc .n{font-size:.76rem;color:var(--muted);font-weight:600}
+  .kc .a{font-weight:900;font-size:1.02rem;color:var(--k-w);letter-spacing:.05em;border-radius:2px}
+  .kc.hid .a{color:transparent;background:radial-gradient(var(--k-w) 1.1px,transparent 1.5px) 0 0/5px 5px;box-shadow:inset 0 0 0 1.5px var(--k-w)}
+  .kc.g{background:var(--green-soft)} .kc.r{background:var(--red-soft)}
+  .sticky{position:sticky;bottom:10px;margin-top:14px;background:var(--card);border:3px solid var(--ink-line);border-radius:6px;
+    box-shadow:var(--shadow-lg);padding:8px 10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;z-index:3}
+  #score{font-weight:800}
+  .chh{margin:18px 0 8px;font-weight:900;font-family:var(--serif);color:var(--card);background:var(--ink);width:fit-content;padding:1px 16px 1px 10px;font-size:.95rem;clip-path:polygon(0 0,100% 0,calc(100% - 7px) 100%,0 100%)}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="crumb"><a href="../index.html">← 政治复盘中心</a> · <a href="刷题.html">📚 刷题</a> · <a href="统计.html">📊 统计</a></div>
+  <div class="crumb"><a href="../index.html">← 政治复盘中心</a><a href="刷题.html">📚 刷题</a><a href="统计.html">📊 统计</a></div>
   <header><h1>答题卡 ／ 答案速查</h1>
   <p class="sub">题号与纸质书<b>一一对应、一个不缺</b>。在书上或刷题本上做完一组，来这里点选答案一键批改，错题自动进错题本。</p></header>
 
@@ -51,13 +53,14 @@
       <select id="selT"><option value="s">单选</option><option value="m">多选</option><option value="e">分析题</option></select>
       <select id="selCh"></select>
     </div>
-    <div class="tabs"><button class="btn on" data-m="card">📝 纸上做完来批改</button><button class="btn" data-m="key">🔍 答案速查</button></div>
+    <div class="seg tabs"><button class="on" data-m="card">📝 纸上做完来批改</button><button data-m="key">🔍 答案速查</button></div>
     <div id="chk"></div>
     <div id="body"></div>
   </section>
   <p class="note">批改记录与刷题页共用（同一题在两处做都算数）。分析题请到刷题页「看参考答案」后自评。</p>
 </div>
 <script src="data_my.js"></script><script src="data_mz.js"></script><script src="data_xg.js"></script><script src="data_sg.js"></script><script src="data_sx.js"></script>
+<script src="../assets/common.js?v=manga1"></script>
 <script>
 (function(){
   var POL=window.POL, KEY='pol_rec_v1', rec={}; try{rec=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){}

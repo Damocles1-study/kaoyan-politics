@@ -2,80 +2,147 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#e2231a">
 <title>1000题 刷题</title>
-<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/style.css?v=manga1">
 <style>
+  .ctrl{padding:14px 14px 12px}
   .tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center}
-  .tools select{font:inherit;font-size:.86rem;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);min-height:38px;width:100%;min-width:0}
+  .tools select{width:100%;min-width:0}
   #selCh{grid-column:1 / -1}
-  .tools .btns{display:flex;gap:6px}
-  .tools .btns .btn{flex:1;padding:4px 6px}
-  @media (min-width:760px){ .tools{grid-template-columns:1.3fr .7fr 2.4fr 1.3fr auto} #selCh{grid-column:auto} }
-  #bar{font-size:.84rem;color:var(--muted);margin-top:10px}
-  #bar b{color:var(--accent)}
-  .qcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:12px}
-  .qmeta{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
-  .stem{font-size:1.02rem;line-height:1.85}
-  .opts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
-  .opt{display:flex;gap:10px;align-items:flex-start;text-align:left;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit;font-size:.96rem;line-height:1.65;cursor:pointer;min-height:46px}
-  .opt .ol{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--muted);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;margin-top:1px}
-  .opt.sel{border-color:var(--blue);background:var(--blue-soft)}
-  .opt.sel .ol{background:var(--blue);border-color:var(--blue);color:#fff}
-  .opt.lock{cursor:default}
-  .opt.right{border-color:var(--green);background:var(--green-soft)}
-  .opt.right .ol{background:var(--green);border-color:var(--green);color:#fff}
-  .opt.wrong{border-color:var(--red);background:var(--red-soft)}
-  .opt.wrong .ol{background:var(--red);border-color:var(--red);color:#fff}
-  .opt.miss{border:2px dashed var(--green)}
+  @media (min-width:760px){ .tools{grid-template-columns:1.25fr .75fr 2.3fr 1.4fr} #selCh{grid-column:auto} }
+  .row2{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+  .row2 .seg{flex:1 1 320px}
+  .row2 select{flex:0 0 auto}
+  .opts2{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin-top:10px;font-size:.84rem;color:var(--ink2);font-weight:600}
+  .opts2 label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+  .opts2 input{width:17px;height:17px;accent-color:var(--accent)}
+  .fmtip{font-size:.83rem;color:var(--muted);margin:10px 2px 0}
+  .fmtip b{color:var(--card);background:var(--ink);padding:0 5px}
+  #bar{font-size:.84rem;color:var(--muted);margin-top:8px}
+  #bar b{color:var(--accent);font-family:var(--round);font-style:italic;font-size:1.05em}
+  .redo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;padding:6px 12px;border:2px solid var(--ink-line);background:var(--pop);color:#151412;font-size:.86rem;font-weight:800}
+  /* 题卡＝一格分镜 */
+  .qcard{padding:18px 17px 16px;margin-top:18px;position:relative}
+  .qmeta{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:10px}
+  .qidx{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;padding:0 6px;margin:-4px 6px 0 -4px;
+    font-family:var(--round);font-style:italic;font-weight:800;font-size:1.05rem;color:#fff;background:var(--ink);border:2px solid var(--ink-line);
+    clip-path:polygon(0 0,100% 0,calc(100% - 5px) 100%,0 100%)}
+  .qno{display:inline-block;font-weight:900;font-size:.88rem;color:var(--accent);margin-right:4px}
+  .stem{font-size:1.04rem;line-height:1.9;color:var(--ink)}
+  .opts{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+  .opt{position:relative;display:flex;gap:11px;align-items:flex-start;text-align:left;border:2px solid var(--ink-line);background:var(--card);color:var(--ink);border-radius:4px;padding:9px 12px;
+    font:inherit;font-size:.96rem;line-height:1.65;cursor:pointer;min-height:46px;box-shadow:2px 2px 0 var(--drop);transition:transform .1s var(--ease),box-shadow .1s,background .15s}
+  .opt:hover{background:var(--bg)}
+  .opt:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--drop)}
+  .opt .ol{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid var(--ink-line);display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:.84rem;margin-top:1px;font-family:var(--round);background:var(--card)}
+  .opt.sel{background:var(--blue-soft);background-image:var(--tone);transform:translate(1px,1px);box-shadow:1px 1px 0 var(--drop)}
+  .opt.sel .ol{background:var(--ink);color:var(--card)}
+  .opt.lock{cursor:default} .opt.lock:active{transform:none;box-shadow:2px 2px 0 var(--drop)}
+  .opt.right{background:var(--green-soft)}
+  .opt.right .ol{background:var(--card);border:3px solid var(--accent);color:var(--accent);transform:rotate(-8deg) scale(1.12)}
+  .opt.wrong{background:var(--red-soft);background-image:repeating-linear-gradient(-45deg,transparent 0 6px,color-mix(in srgb,var(--red) 12%,transparent) 6px 8px)}
+  .opt.wrong .ol{background:var(--red);border-color:var(--ink-line);color:#fff}
+  .opt.miss{border-style:dashed;background:var(--green-soft)}
   .opt.miss .ol{border-color:var(--green);color:var(--green)}
   .act{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-  .verdict{margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--line);font-size:.95rem}
+  /* 判卷：对了盖红笔〇，错了盖×并整格一抖 */
+  .verdict{position:relative;margin-top:14px;padding:9px 70px 9px 14px;border:2px solid var(--ink-line);border-radius:4px;background:var(--bg);font-size:.95rem;font-weight:700;overflow:visible}
   .verdict.ok{background:var(--green-soft);color:var(--green)} .verdict.bad{background:var(--red-soft);color:var(--red)}
-  .jx,.db,.ea{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--line);font-size:.92rem;line-height:1.8}
-  .ea{border:2px solid var(--gold)}
-  .eh{font-weight:700;font-size:.84rem;color:var(--accent);margin-bottom:4px}
+  .verdict.blank{background:var(--gold-soft);color:var(--gold)}
+  .verdict.ok::after,.verdict.bad::after{position:absolute;right:16px;top:50%;font-family:var(--serif);font-weight:900;line-height:1;color:var(--accent);
+    transform:translateY(-50%) rotate(-12deg);animation:stamp .5s var(--spring) both;pointer-events:none;text-shadow:1px 1px 0 var(--card)}
+  .verdict.ok::after{content:"〇";font-size:2.6rem}
+  .verdict.bad::after{content:"✕";font-size:2.2rem}
+  .jx,.db,.ea{margin-top:10px;padding:11px 14px;border:2px solid var(--ink-line);border-radius:4px;background:var(--card);font-size:.92rem;line-height:1.8}
+  .ea{background:var(--gold-soft);border-width:3px;border-style:double}
+  .eh{display:inline-block;font-weight:900;font-size:.8rem;color:#fff;background:var(--ink);padding:0 9px 0 7px;margin-bottom:6px;clip-path:polygon(0 0,100% 0,calc(100% - 5px) 100%,0 100%)}
+  .ea .eh .note{color:#fff;opacity:.85}
   .src{font-size:.8rem;color:var(--muted);margin-top:8px}
-  #nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;justify-content:center;z-index:5}
-  #nav .btn{flex:1;max-width:160px}
-  #pos{font-size:.85rem;color:var(--muted);min-width:70px;text-align:center}
-  #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:6px;margin-top:12px}
-  .gi{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 0;font-size:.8rem;cursor:pointer}
-  .gi.g{background:var(--green-soft);color:var(--green);border-color:var(--green)}
-  .gi.r{background:var(--red-soft);color:var(--red);border-color:var(--red)}
-  .gi.cur{outline:2px solid var(--accent)}
-  .empty{padding:30px 10px;text-align:center;color:var(--muted)}
-  .qno{display:inline-block;font-weight:800;font-size:.86rem;color:var(--accent);margin-right:6px}
-  .neg{color:var(--k-w);font-weight:800;background:var(--red-soft);padding:0 3px;border-radius:4px}
-  .ask{color:var(--k-x);font-weight:700;text-decoration:underline wavy;text-decoration-thickness:1px;text-underline-offset:4px}
-  .lk{display:block;margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--blue-soft);color:var(--blue);font-weight:700;text-decoration:none}
-  .qcard{box-shadow:var(--shadow)}
-  .stem{font-size:1.04rem;line-height:1.9;color:var(--ink)}
+  .lk{display:block;margin-top:10px;padding:9px 14px;border:2px solid var(--ink-line);border-radius:4px;background:var(--blue-soft);color:var(--blue);font-weight:800;text-decoration:none;
+    box-shadow:3px 3px 0 var(--drop);transition:transform .1s,box-shadow .1s}
+  .lk:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--drop)}
   .miao{margin-top:12px}
+  .neg{color:#fff;font-weight:900;background:var(--accent);padding:0 3px}
+  .ask{color:var(--k-x);font-weight:800;text-decoration:underline wavy;text-decoration-thickness:1.5px;text-underline-offset:4px}
+  .ana-fold{margin-top:10px}
+  .ana-fold>summary{cursor:pointer;font-size:.86rem;font-weight:800;color:var(--blue);list-style:none;padding:6px 0}
+  .ana-fold>summary::-webkit-details-marker{display:none}
+  .ana-fold>summary::before{content:"▶ ";font-size:.75em;display:inline-block;transition:transform .2s var(--ease)}
+  .ana-fold[open]>summary::before{transform:rotate(90deg)}
+  .bq{scroll-margin-top:12px}
+  .bq.hidecard{display:none}
+  .bq.flash{animation:flash 1s var(--ease)}
+  @keyframes flash{25%{box-shadow:7px 7px 0 var(--accent)}}
+  /* 题号格 */
+  #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:7px;margin-top:12px}
+  .gi{border:2px solid var(--ink-line);background:var(--card);color:var(--ink);border-radius:3px;padding:4px 0;font-size:.86rem;font-weight:800;font-style:italic;
+    cursor:pointer;font-family:var(--round);box-shadow:2px 2px 0 var(--drop);transition:transform .1s,box-shadow .1s}
+  .gi:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--drop)}
+  .gi.a{background:var(--ink);color:var(--card)}
+  .gi.g{background:var(--green-soft);color:var(--green)}
+  .gi.r{background:var(--red);color:#fff}
+  .gi.cur{outline:3px solid var(--pop);outline-offset:1px}
+  .empty{padding:34px 10px;text-align:center;color:var(--muted)}
+  /* 交卷成绩 */
+  @property --p{syntax:'<number>';inherits:false;initial-value:0}
+  .sum{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+  .ring{--p:0;flex:none;width:118px;height:118px;border-radius:50%;display:grid;place-items:center;border:3px solid var(--ink-line);box-shadow:4px 4px 0 var(--drop);
+    background:conic-gradient(var(--rc,var(--green)) calc(var(--p)*1%),var(--bg2) 0);transition:--p 1s var(--ease)}
+  .ring::before{content:"";grid-area:1/1;width:84px;height:84px;border-radius:50%;background:var(--card);border:3px solid var(--ink-line)}
+  .ring span{grid-area:1/1;position:relative;font-family:var(--round);font-style:italic;font-weight:800;font-size:1.6rem;line-height:1.05;text-align:center}
+  .ring small{display:block;font-size:.68rem;color:var(--muted);font-weight:700;font-style:normal;font-family:var(--sans)}
+  .sum .info{flex:1;min-width:200px;font-size:.92rem}
+  .sum .info .big{font-family:var(--round);font-style:italic;font-size:2.3rem;font-weight:800;line-height:1.1}
+  .sum .act{margin-top:10px}
+  /* 底部操作条 */
+  #nav{position:fixed;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(580px,calc(100vw - 24px));
+    border-width:3px;padding:7px;display:flex;gap:8px;align-items:center;justify-content:center;z-index:5;box-shadow:var(--shadow-lg);animation:dockin .4s var(--spring)}
+  #nav .btn{flex:1;max-width:170px}
+  #nav .mid{flex:1.2;text-align:center;font-size:.84rem;color:var(--ink2);line-height:1.35;font-variant-numeric:tabular-nums;font-weight:600}
+  #nav .mid b{color:var(--ink);font-family:var(--round);font-style:italic;font-size:1.1em}
+  #nav .tm{font-family:var(--round);font-style:italic;font-weight:800;font-size:1.15rem;color:var(--ink)}
+  #nav .tm.warn{color:var(--accent)}
+  body{padding-bottom:110px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="crumb"><a href="../index.html">← 政治复盘中心</a> · <a href="统计.html">📊 统计 / 错题本</a> · <a href="答题卡.html">🗂 答题卡 / 答案速查</a></div>
-  <div class="tools">
-    <select id="selP" aria-label="科目"></select>
-    <select id="selT" aria-label="题型"><option value="s">单选</option><option value="m">多选</option><option value="e">分析题</option><option value="all">全部题型</option></select>
-    <select id="selCh" aria-label="章节"></select>
-    <select id="selMode" aria-label="模式"><option value="seq">顺序刷</option><option value="undone">只刷没做过的</option><option value="wrong">错题本（连对2次自动出本）</option><option value="rand">随机 20 题</option></select>
-    <div class="btns"><button class="btn sm" id="viewBtn"></button><button class="btn sm" id="gridBtn">题号</button></div>
-  </div>
-  <div id="bar"></div>
-  <div id="grid" hidden></div>
-  <div class="qcard" id="q"></div>
-  <p class="note">题干最后一句里，<span class="neg">否定词</span>标红底、<span class="ask">题眼</span>标橙波浪线；解析里 <span class="km">A 正确</span> / <span class="kw">B 错误</span> / <span class="kt">《著作》·年份</span> / <span class="kw">根本·核心</span> 自动着色。<br>快捷键（电脑）：A–D / 1–4 选项 · Enter 提交多选 / 下一题 · ← → 翻题。做题记录只存在本机浏览器里。</p>
+  <div class="crumb"><a href="../index.html">← 政治复盘中心</a><a href="统计.html">📊 统计 / 错题本</a><a href="答题卡.html">🗂 答题卡 / 答案速查</a><a href="../背诵/背诵卡.html">🃏 背诵卡</a></div>
+  <section class="card ctrl">
+    <div class="tools">
+      <select id="selP" aria-label="科目"></select>
+      <select id="selT" aria-label="题型"><option value="s">单选</option><option value="m">多选</option><option value="e">分析题</option><option value="all">全部题型</option></select>
+      <select id="selCh" aria-label="章节"></select>
+      <select id="selMode" aria-label="范围"><option value="seq">顺序</option><option value="undone">只刷没做过的</option><option value="wrong">错题本（连对2次出本）</option><option value="rand">随机打乱</option></select>
+    </div>
+    <div class="row2">
+      <div class="seg" id="fmSeg" role="tablist" aria-label="刷题方式">
+        <button data-f="one">逐题</button><button data-f="flow">连刷</button><button data-f="exam">模考</button><button data-f="read">背题</button>
+      </div>
+      <select id="selN" aria-label="每组题数"><option value="10">每组 10 题</option><option value="20">每组 20 题</option><option value="30">每组 30 题</option><option value="50">每组 50 题</option><option value="0">整章一页</option></select>
+      <button class="btn sm" id="gridBtn">▦ 题号</button>
+    </div>
+    <div class="opts2" id="opts2"></div>
+    <p class="fmtip" id="fmTip"></p>
+    <div id="bar"></div>
+    <div id="grid" hidden></div>
+  </section>
+  <div id="sum"></div>
+  <div id="q"></div>
+  <div id="list"></div>
+  <p class="note">题干最后一句里，<span class="neg">否定词</span>标红底、<span class="ask">题眼</span>标橙波浪线；解析里 <span class="km">A 正确</span> / <span class="kw">B 错误</span> / <span class="kt">《著作》·年份</span> / <span class="kw">根本·核心</span> 自动着色。<br>快捷键（电脑）：逐题模式 A–D / 1–4 选项 · Enter 提交多选 / 下一题 · ← → 翻题；连刷 / 模考 / 背题模式 ← → 翻组。做题记录只存在本机浏览器里。</p>
 </div>
-<div id="nav"><button class="btn" id="prev">← 上一题</button><span id="pos"></span><button class="btn" id="next">下一题 →</button></div>
+<div id="nav"></div>
 <script src="data_my.js"></script>
 <script src="data_mz.js"></script>
 <script src="data_xg.js"></script>
 <script src="data_sg.js"></script>
 <script src="data_sx.js"></script>
-<script src="engine.js"></script>
+<script src="../assets/common.js?v=manga1"></script>
+<script src="engine.js?v=manga1"></script>
 <script>PolEngine.init();</script>
 </body>
 </html>
