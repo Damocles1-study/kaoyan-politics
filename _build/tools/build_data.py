@@ -5,8 +5,9 @@ Q=json.load(open(S+'/work/questions2.json')); A=json.load(open(S+'/work/answers.
 amap={(a['part'],a['t'],a['no']):a for a in A}
 FIX=json.load(open('/Users/zyx/Downloads/新威考研-资料/11408相关/政治/复盘中心/_build/notes/manual_fix.json'))
 MY={}
-try: MY=json.load(open('/Users/zyx/Downloads/新威考研-资料/11408相关/政治/复盘中心/_build/notes/my_notes.json'))
-except FileNotFoundError: pass
+import glob
+for _f in sorted(glob.glob('/Users/zyx/Downloads/新威考研-资料/11408相关/政治/复盘中心/_build/notes/my_*.json')):
+    MY.update(json.load(open(_f,encoding='utf-8')))   # my_notes.json(马原导论+ch1) + my_ch2.json … 每章一份
 META={'my':('马克思主义基本原理','马原'),'mz':('毛泽东思想和中国特色社会主义理论体系概论','毛中特'),
       'xg':('习近平新时代中国特色社会主义思想概论','习概'),'sg':('中国近现代史纲要','史纲'),'sx':('思想道德与法治','思法')}
 def fix(s):
@@ -18,6 +19,9 @@ def fix(s):
         s=s.replace(a,b)
     s=re.sub(r'中图(?=共产党|特色|人民|梦|化|近现代|革命|社会|的|式|古代|传统)','中国',s)
     return s
+def LECT_ALL():
+    # 讲义登记表：科目 → {章号: 讲义路径}。新写一章就在这里加一行
+    return {'my':{0:'讲义/马原_导论与第1章.html',1:'讲义/马原_导论与第1章.html',2:'讲义/马原_第2章.html'}}
 def tail(s):
     s=re.sub(r'\s*\d{0,3}2027\s*(考研政治\s*1000\s*题\W*)?[:：]?\s*$','',s)
     s=re.sub(r'小2027$','',s)
@@ -74,6 +78,31 @@ for a in A:
           'src':'','jx':clean_field(a['jx'],0),'db':clean_field(a['db'],0),'tag':a['tag']}
     if qid in MY: item['my']=MY[qid]
     data[a['part']].append(item)
+# ---- 讲义 ↔ 题目：解析每份讲义每节的 qlink，把「本题知识点」登记回题目 ----
+import os, html as _h
+ROOT='/Users/zyx/Downloads/新威考研-资料/11408相关/政治/复盘中心/'
+LK={}
+for lf in sorted(set(v for d in LECT_ALL().values() for v in d.values())):
+    src=open(ROOT+lf,encoding='utf-8').read()
+    for sm in re.finditer(r'<section class="card" id="(d\d+)">(.*?)</section>',src,re.S):
+        sid,body=sm.group(1),sm.group(2)
+        h2=re.search(r'<h2>(.*?)</h2>',body,re.S)
+        title=_h.unescape(re.sub(r'<[^>]+>','',h2.group(1))).strip() if h2 else sid
+        for a in re.finditer(r'<a class="qlink" href="\.\./题库/刷题\.html\?p=(\w+)&(?:amp;)?t=([sme])&(?:amp;)?ch=(\d+)[^"]*">([^<]*)</a>',body):
+            pp,tt,ch,label=a.group(1),a.group(2),int(a.group(3)),a.group(4)
+            if re.search(r'\d+\s*题\s*$',label) or not re.search(r'\d',label):
+                nos=[x['no'] for x in data[pp] if x['t']==tt and x['ch']==ch]
+            else:
+                nos=[]
+                for r in re.finditer(r'(\d+)\s*[–\-~～]\s*(\d+)|(\d+)',label):
+                    if r.group(3): nos.append(int(r.group(3)))
+                    else: nos+=list(range(int(r.group(1)),int(r.group(2))+1))
+            for n in nos: LK.setdefault(f'{pp}-{tt}-{n}',f'{lf}#{sid}|{title}')
+nlk=0
+for p in data:
+    for x in data[p]:
+        if x['id'] in LK: x['lk']=LK[x['id']]; nlk+=1
+print('knowledge links',nlk)
 tot=0
 for p,(name,short) in META.items():
     chs={k:(f"第{k}章 {v}" if k else v) for k,v in enumerate(CH[p])}
@@ -92,7 +121,7 @@ for p,(name,short) in META.items():
 print('total',tot)
 
 # ---- meta.js：首页用的轻量目录（章名、各题型题号区间、讲义登记、秒杀笔记数）----
-LECT={'my':{0:'讲义/马原_导论与第1章.html',1:'讲义/马原_导论与第1章.html'}}
+LECT=LECT_ALL()
 def ranges(nums):
     nums=sorted(nums); out=[]
     for n in nums:

@@ -45,11 +45,18 @@
   .gi.r{background:var(--red-soft);color:var(--red);border-color:var(--red)}
   .gi.cur{outline:2px solid var(--accent)}
   .empty{padding:30px 10px;text-align:center;color:var(--muted)}
+  .qno{display:inline-block;font-weight:800;font-size:.86rem;color:var(--accent);margin-right:6px}
+  .neg{color:var(--k-w);font-weight:800;background:var(--red-soft);padding:0 3px;border-radius:4px}
+  .ask{color:var(--k-x);font-weight:700;text-decoration:underline wavy;text-decoration-thickness:1px;text-underline-offset:4px}
+  .lk{display:block;margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--blue-soft);color:var(--blue);font-weight:700;text-decoration:none}
+  .qcard{box-shadow:var(--shadow)}
+  .stem{font-size:1.04rem;line-height:1.9;color:var(--ink)}
+  .miao{margin-top:12px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="crumb"><a href="../index.html">← 政治复盘中心</a> · <a href="统计.html">📊 统计 / 错题本</a></div>
+  <div class="crumb"><a href="../index.html">← 政治复盘中心</a> · <a href="统计.html">📊 统计 / 错题本</a> · <a href="答题卡.html">🗂 答题卡 / 答案速查</a></div>
   <div class="tools">
     <select id="selP" aria-label="科目"></select>
     <select id="selT" aria-label="题型"><option value="s">单选</option><option value="m">多选</option><option value="e">分析题</option><option value="all">全部题型</option></select>
@@ -60,7 +67,7 @@
   <div id="bar"></div>
   <div id="grid" hidden></div>
   <div class="qcard" id="q"></div>
-  <p class="note">快捷键（电脑）：A–D / 1–4 选项 · Enter 提交多选 / 下一题 · ← → 翻题。做题记录只存在本机浏览器里。</p>
+  <p class="note">题干最后一句里，<span class="neg">否定词</span>标红底、<span class="ask">题眼</span>标橙波浪线；解析里 <span class="km">A 正确</span> / <span class="kw">B 错误</span> / <span class="kt">《著作》·年份</span> / <span class="kw">根本·核心</span> 自动着色。<br>快捷键（电脑）：A–D / 1–4 选项 · Enter 提交多选 / 下一题 · ← → 翻题。做题记录只存在本机浏览器里。</p>
 </div>
 <div id="nav"><button class="btn" id="prev">← 上一题</button><span id="pos"></span><button class="btn" id="next">下一题 →</button></div>
 <script src="data_my.js"></script>

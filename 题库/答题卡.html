@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>答题卡与答案速查</title>
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  .tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .tools select{font:inherit;font-size:.88rem;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);min-height:38px;width:100%;min-width:0}
+  #selCh{grid-column:1 / -1}
+  .tabs{display:flex;gap:6px;margin:12px 0}
+  .tabs button{flex:1}
+  .tabs button.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;font-weight:700}
+  .chkline{font-size:.86rem;padding:8px 12px;border-radius:10px;margin:8px 0}
+  .chkline.ok{background:var(--green-soft);color:var(--green)} .chkline.bad{background:var(--red-soft);color:var(--red)}
+  .row{display:flex;align-items:center;gap:6px;padding:7px 4px;border-bottom:1px solid var(--line)}
+  .row .no{width:46px;flex:none;font-weight:800;font-family:var(--serif);color:var(--ink)}
+  .row .no a{color:inherit;text-decoration:none}
+  .row .pg{width:44px;flex:none;font-size:.72rem;color:var(--muted)}
+  .row .ls{display:flex;gap:5px;flex:1}
+  .row .ls button{width:38px;height:36px;border-radius:9px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-weight:700;font-family:inherit;cursor:pointer}
+  .row .ls button.sel{background:var(--blue);border-color:var(--blue);color:#fff}
+  .row .ls button.right{background:var(--green);border-color:var(--green);color:#fff}
+  .row .ls button.wrong{background:var(--red);border-color:var(--red);color:#fff}
+  .row .ls button.miss{border:2px dashed var(--green);color:var(--green)}
+  .row .mk{width:54px;flex:none;text-align:right;font-size:.8rem;font-weight:700}
+  .row .mk.g{color:var(--green)} .row .mk.r{color:var(--red)} .row .mk.h{color:var(--muted);font-weight:400}
+  .row.done-ok .no{color:var(--green)} .row.done-bad .no{color:var(--red)}
+  .key-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px}
+  .kc{border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center;background:var(--card);cursor:pointer}
+  .kc .n{font-size:.76rem;color:var(--muted)}
+  .kc .a{font-weight:800;font-size:1rem;color:var(--k-w);letter-spacing:.05em}
+  .kc.hid .a{filter:blur(6px)}
+  .kc.g{border-color:var(--green)} .kc.r{border-color:var(--red);background:var(--red-soft)}
+  .sticky{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 0;display:flex;gap:8px;flex-wrap:wrap;align-items:center;z-index:3}
+  #score{font-weight:700}
+  .chh{margin:16px 0 6px;font-weight:800;color:var(--accent);font-size:.95rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="crumb"><a href="../index.html">← 政治复盘中心</a> · <a href="刷题.html">📚 刷题</a> · <a href="统计.html">📊 统计</a></div>
+  <header><h1>答题卡 ／ 答案速查</h1>
+  <p class="sub">题号与纸质书<b>一一对应、一个不缺</b>。在书上或刷题本上做完一组，来这里点选答案一键批改，错题自动进错题本。</p></header>
+
+  <section class="card">
+    <div class="tools">
+      <select id="selP"></select>
+      <select id="selT"><option value="s">单选</option><option value="m">多选</option><option value="e">分析题</option></select>
+      <select id="selCh"></select>
+    </div>
+    <div class="tabs"><button class="btn on" data-m="card">📝 纸上做完来批改</button><button class="btn" data-m="key">🔍 答案速查</button></div>
+    <div id="chk"></div>
+    <div id="body"></div>
+  </section>
+  <p class="note">批改记录与刷题页共用（同一题在两处做都算数）。分析题请到刷题页「看参考答案」后自评。</p>
+</div>
+<script src="data_my.js"></script><script src="data_mz.js"></script><script src="data_xg.js"></script><script src="data_sg.js"></script><script src="data_sx.js"></script>
+<script>
+(function(){
+  var POL=window.POL, KEY='pol_rec_v1', rec={}; try{rec=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){}
+  function save(){ try{localStorage.setItem(KEY,JSON.stringify(rec));}catch(e){} }
+  var qp=new URLSearchParams(location.search), st={p:qp.get('p')||'my', t:qp.get('t')||'s', ch:qp.get('ch')||'all', m:qp.get('m')||'card'}, picks={};
+  var $=function(s){return document.querySelector(s);};
+  function fill(){
+    $('#selP').innerHTML=['my','sg','xg','sx','mz'].map(function(k){return '<option value="'+k+'">'+POL[k].name+'</option>';}).join('');
+    $('#selP').value=st.p; $('#selT').value=st.t;
+    var S=POL[st.p], o='<option value="all">全部章节（按书顺序）</option>';
+    Object.keys(S.chapters).forEach(function(k){ var n=S.qs.filter(function(q){return String(q.ch)===k&&q.t===st.t;}).length; if(n) o+='<option value="'+k+'">'+S.chapters[k]+'（'+n+'）</option>'; });
+    $('#selCh').innerHTML=o; $('#selCh').value=st.ch; if($('#selCh').value!==st.ch){st.ch='all';$('#selCh').value='all';}
+    document.querySelectorAll('.tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.m===st.m);});
+    var u=new URL(location.href); ['p','t','ch','m'].forEach(function(k){u.searchParams.set(k,st[k]);}); history.replaceState(null,'',u);
+  }
+  function list(){ var S=POL[st.p]; return S.qs.filter(function(q){return q.t===st.t&&(st.ch==='all'||String(q.ch)===st.ch);}).sort(function(a,b){return a.no-b.no;}); }
+  function check(L){
+    var all=POL[st.p].qs.filter(function(q){return q.t===st.t;}).map(function(q){return q.no;}).sort(function(a,b){return a-b;});
+    var max=all[all.length-1]||0, miss=[]; for(var n=1;n<=max;n++) if(all.indexOf(n)<0) miss.push(n);
+    var lo=L.length?L[0].no:0, hi=L.length?L[L.length-1].no:0;
+    $('#chk').innerHTML='<div class="chkline '+(miss.length?'bad':'ok')+'">'+(miss.length?'⚠️ 本科该题型缺号：'+miss.join('、'):'✅ 本科'+({s:'单选',m:'多选',e:'分析题'})[st.t]+'共 '+max+' 题，题号 1–'+max+' 连续无缺号')
+      +(st.ch!=='all'&&L.length?'；本章是第 '+lo+'–'+hi+' 题（'+L.length+' 题）':'')+'</div>';
+  }
+  function render(){
+    var L=list(), S=POL[st.p]; check(L); picks={};
+    if(st.t==='e'){ $('#body').innerHTML=L.map(function(q){var r=rec[q.id];return '<div class="row"><span class="no"><a href="刷题.html?p='+st.p+'&t=e&ch=99&q='+q.id+'">'+q.no+'</a></span><span class="ls" style="font-size:.86rem">'+(q.stem.indexOf('缺了本题')>=0?'⚠️ PDF 缺材料页，答案完整':'材料与设问完整')+'</span><span class="mk '+(r?(r.ok?'g':'r'):'h')+'">'+(r?['还不会','大致记得','能默出'][r.self||0]:'未做')+'</span></div>';}).join(''); return; }
+    var lastCh=null, h='';
+    if(st.m==='key'){
+      h='<p class="note">答案默认遮住：点一格看一格；或 <button class="btn sm" id="showAll">全部显示</button></p>';
+      L.forEach(function(q){ if(q.ch!==lastCh){ if(lastCh!==null) h+='</div>'; h+='<div class="chh">'+S.chapters[q.ch]+'</div><div class="key-grid">'; lastCh=q.ch; }
+        var r=rec[q.id]; h+='<div class="kc hid '+(r?(r.ok?'g':'r'):'')+'" title="书 P'+q.page+'"><div class="n">'+q.no+' · P'+q.page+'</div><div class="a">'+q.ans+'</div></div>'; });
+      if(L.length) h+='</div>';
+      $('#body').innerHTML=h;
+      document.querySelectorAll('.kc').forEach(function(c){c.onclick=function(){c.classList.toggle('hid');};});
+      var sa=$('#showAll'); if(sa) sa.onclick=function(){document.querySelectorAll('.kc').forEach(function(c){c.classList.remove('hid');});};
+      return;
+    }
+    L.forEach(function(q){
+      if(q.ch!==lastCh){ h+='<div class="chh">'+S.chapters[q.ch]+'</div>'; lastCh=q.ch; }
+      var r=rec[q.id];
+      h+='<div class="row '+(r?(r.ok?'done-ok':'done-bad'):'')+'" data-id="'+q.id+'"><span class="no"><a href="刷题.html?p='+st.p+'&t='+st.t+'&ch='+q.ch+'&q='+q.id+'">'+q.no+'</a></span><span class="pg">P'+q.page+'</span><span class="ls">'
+        +'ABCD'.split('').map(function(k){return '<button data-k="'+k+'">'+k+'</button>';}).join('')+'</span><span class="mk h">'+(r?(r.ok?'上次✓':'上次✗'):'')+'</span></div>';
+    });
+    h+='<div class="sticky"><button class="btn pri" id="grade">一键批改</button><button class="btn" id="reset">清空本页选择</button><span id="score" class="note"></span></div>';
+    $('#body').innerHTML=h;
+    document.querySelectorAll('.row').forEach(function(row){
+      var id=row.dataset.id; row.querySelectorAll('.ls button').forEach(function(b){ b.onclick=function(){
+        if(row.classList.contains('graded')) return;
+        var s=picks[id]||'';
+        if(st.t==='s') s=(s===b.dataset.k?'':b.dataset.k); else s=s.indexOf(b.dataset.k)>=0?s.replace(b.dataset.k,''):s+b.dataset.k;
+        picks[id]=s.split('').sort().join('');
+        row.querySelectorAll('.ls button').forEach(function(x){x.classList.toggle('sel',picks[id].indexOf(x.dataset.k)>=0);});
+      };});
+    });
+    $('#reset').onclick=render;
+    $('#grade').onclick=function(){
+      var n=0, ok=0, wrongNos=[];
+      L.forEach(function(q){ var p=picks[q.id]; if(!p) return; var row=document.querySelector('.row[data-id="'+q.id+'"]'); if(row.classList.contains('graded')) return;
+        n++; var good=p===q.ans; if(good) ok++; else wrongNos.push(q.no);
+        var r=rec[q.id]||{n:0,w:0,streak:0}; r.n++; r.ok=good; r.pick=p; r.ts=Date.now(); if(good) r.streak=(r.streak||0)+1; else {r.w++; r.streak=0;} rec[q.id]=r;
+        row.classList.add('graded', good?'done-ok':'done-bad'); row.classList.remove(good?'done-bad':'done-ok');
+        row.querySelectorAll('.ls button').forEach(function(b){ var k=b.dataset.k, a=q.ans.indexOf(k)>=0, pk=p.indexOf(k)>=0; b.classList.remove('sel'); if(a&&pk) b.classList.add('right'); else if(a) b.classList.add('miss'); else if(pk) b.classList.add('wrong'); });
+        var mk=row.querySelector('.mk'); mk.className='mk '+(good?'g':'r'); mk.textContent=good?'✓':'✗ '+q.ans;
+      });
+      save();
+      var blank=L.filter(function(q){return !picks[q.id];}).map(function(q){return q.no;});
+      $('#score').innerHTML=n?'本次批改 '+n+' 题，对 '+ok+'（'+Math.round(100*ok/n)+'%）'+(wrongNos.length?'；错：'+wrongNos.join('、'):'')+(blank.length&&blank.length<L.length?'<br>⚠️ 还有 '+blank.length+' 题没填：'+blank.slice(0,30).join('、')+(blank.length>30?'…':''):''):'还没有选任何答案。';
+    };
+  }
+  fill(); render();
+  $('#selP').onchange=function(e){st.p=e.target.value;st.ch='all';fill();render();};
+  $('#selT').onchange=function(e){st.t=e.target.value;fill();render();};
+  $('#selCh').onchange=function(e){st.ch=e.target.value;fill();render();};
+  document.querySelectorAll('.tabs button').forEach(function(b){b.onclick=function(){st.m=b.dataset.m;fill();render();};});
+})();
+</script>
+</body>
+</html>

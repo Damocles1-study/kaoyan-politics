@@ -15,6 +15,37 @@
   const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const fmt = s => esc(s).replace(/\n/g,'<br>');
 
+  /* 自动着色（只作用于肖的简析 / 点拨 / 参考答案，一次扫描、互不嵌套）：
+   * 《著作》与年份→紫  ·  「A、B 正确」→绿  ·  「C 错误」→红  ·  根本/核心/实质…→红
+   * 短引号概念→蓝  ·  （1）（2）第一第二→金  ·  「易错 / 注意 / 不要混淆」→橙 */
+  const TITLE = '最基本、最核心|根本属性|唯一特性|唯一源泉|唯一标准|本质属性|根本目的|根本原因|根本动力|根本途径|根本方法|根本特征|根本区别|根本问题|决定性|根本|核心|实质|本质|基石|精髓|灵魂|前提|基础|首要|关键';
+  const HL = new RegExp(
+    '(《[^》\\n]{1,32}》)' +
+    '|((?:\\d{4}(?:—|-|～|~|至)\\d{2,4}|\\d{4})年(?:\\d{1,2}月)?(?:\\d{1,2}日)?)' +
+    '|((?:[A-D](?:\\s*[、，,和与及]\\s*[A-D])*|[①②③④⑤](?:[①②③④⑤])*)\\s*项?\\s*(?:均)?(?:正确|符合题意|当选|入选|应选))' +
+    '|((?:[A-D](?:\\s*[、，,和与及]\\s*[A-D])*|[①②③④⑤](?:[①②③④⑤])*)\\s*项?\\s*(?:均)?(?:错误|不正确|不符合题意|不选|排除|说法错误|表述错误|不合题意))' +
+    '|(本题选\\s*[A-D①-⑤]+|因此[，,]?\\s*本题选\\s*[A-D]+)' +
+    '|(' + TITLE + ')' +
+    '|(“[^”\\n]{2,12}”)' +
+    '|([（(][1-6][)）]|第[一二三四五六]，|首先，|其次，|再次，|最后，)' +
+    '|(易错|易混|注意区分|不要混淆|需要注意|容易误选|陷阱)', 'g');
+  const CLS = [null,'kt','kt','km','kw','km','kw','kd','kn','kx'];
+  const hl = s => esc(s).replace(HL, (...m) => { for (let i=1;i<CLS.length;i++) if (m[i]) return `<span class="${CLS[i]}">${m[i]}</span>`; return m[0]; }).replace(/\n/g,'<br>');
+  /* 题干：只在最后一句里标「题眼」，否定词标红，防止看漏「不正确的是」 */
+  const NEG = /(不正确|错误的是|不属于|不包括|不符合|不是|并非|不能|无关|错误的有|不正确的有)/g;
+  const ASK = /(这说明|这表明|说明了|表明|体现了|蕴含的(?:哲学)?(?:原理|哲理|道理)|启示是|启示有|在于|是因为|是指|主要是|根本原因|根本在于|关键在于|核心是|实质是|首要|根本|标志着|意味着)/g;
+  function hlStem(s){
+    s = String(s==null?'':s);
+    let stmts = '';
+    const ci = s.search(/\n\s*①/);
+    if (ci >= 0) { stmts = s.slice(ci); s = s.slice(0, ci); }
+    let cut = Math.max(s.lastIndexOf('。'), s.lastIndexOf('？'), s.lastIndexOf('！'), s.lastIndexOf('”'));
+    if (cut < 0 || cut >= s.length-1) cut = Math.max(-1, s.length - 42);
+    const head = s.slice(0, cut+1), tail = s.slice(cut+1);
+    const t2 = esc(tail).replace(NEG,'<span class="neg">$1</span>').replace(ASK,'<span class="ask">$1</span>');
+    return (esc(head) + t2 + esc(stmts)).replace(/\n/g,'<br>');
+  }
+
   const qp = new URLSearchParams(location.search);
   const st = {
     p: qp.get('p') || pref.p || 'my',
@@ -76,8 +107,8 @@
     st.picked = new Set(); st.done = st.view === 'read';
     const tag = q.tag ? `<span class="pill gold">${esc(q.tag)}</span>` : '';
     const hist = r ? `<span class="pill ${r.ok?'green':'red'}">做过 ${r.n} 次${r.w?' · 错 '+r.w:''}</span>` : '';
-    let h = `<div class="qmeta"><span class="pill purple">${S.short}</span><span class="pill">${esc(S.chapters[q.ch]||'')}</span><span class="pill blue">${TYPES[q.t]} ${q.no}</span><span class="pill">书 P${q.page}</span>${tag}${hist}</div>`;
-    h += `<div class="stem">${fmt(q.stem)}</div>`;
+    let h = `<div class="qmeta"><span class="subj ${q._p}">${S.short}</span><span class="pill">${esc(S.chapters[q.ch]||'')}</span><span class="qno">${TYPES[q.t]} 第 ${q.no} 题</span><span class="pill">书 P${q.page}</span>${tag}${hist}</div>`;
+    h += `<div class="stem">${hlStem(q.stem)}</div>`;
     if (q.t !== 'e'){
       h += `<div class="opts">` + q.opts.map((o,k)=>{ const L='ABCD'[k]; return `<button class="opt" data-k="${L}"><span class="ol">${L}</span><span class="ot">${fmt(o)}</span></button>`; }).join('') + `</div>`;
       if (q.t === 'm') h += `<div class="act"><button class="btn pri" id="submit">提交（多选）</button></div>`;
@@ -134,10 +165,11 @@
       h += `<div class="verdict ${ok===null?'':ok?'ok':'bad'}">答案 <b>${q.ans}</b>${pickStr?` · 你选 <b>${pickStr}</b> ${ok?'✅':'❌'}`:''}</div>`;
     }
     if (q.my) h += `<div class="miao">${q.my}</div>`;
-    if (q.t === 'e' && q.ea) h += `<div class="ea"><div class="eh">📕 参考答案（肖·解析分册）<span class="note">——大题要背的是这里的<b>要点句</b>，不是材料</span></div>${fmt(q.ea)}</div>`;
-    if (q.jx) h += `<div class="jx"><div class="eh">📕 肖·简析</div>${fmt(q.jx)}</div>`;
-    if (q.db) h += `<div class="db"><div class="eh">📌 肖·点拨</div>${fmt(q.db)}</div>`;
-    if (q.src) h += `<div class="src">出处：${esc(q.src)}</div>`;
+    if (q.t === 'e' && q.ea) h += `<div class="ea"><div class="eh">📕 参考答案（肖·解析分册）<span class="note">——大题要背的是这里的<b>要点句</b>，不是材料</span></div>${hl(q.ea)}</div>`;
+    if (q.jx) h += `<div class="jx"><div class="eh">📕 肖·简析</div>${hl(q.jx)}</div>`;
+    if (q.db) h += `<div class="db"><div class="eh">📌 肖·点拨</div>${hl(q.db)}</div>`;
+    if (q.lk) { const [u,tt] = q.lk.split('|'); h += `<a class="lk" href="../${u}">📖 本题知识点：${esc(tt)} →</a>`; }
+    if (q.src) h += `<div class="src">出处：${esc(q.src)}（《精讲精练》页码 · 考点段落）</div>`;
     if (q.t === 'e'){
       const r = rec[q.id];
       h += `<div class="act self">自评：<button class="btn sm" data-s="2">能默出要点</button><button class="btn sm" data-s="1">大致记得</button><button class="btn sm" data-s="0">还不会</button>${r?` <span class="note">上次：${['还不会','大致记得','能默出要点'][r.self||0]}</span>`:''}</div>`;
