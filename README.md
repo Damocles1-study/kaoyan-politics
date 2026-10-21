@@ -41,7 +41,8 @@
 python3 _build/tools/build_data.py
 ```
 
-- 输入：`_build/work/questions2.json`（试题）＋ `answers.json`（解析）＋ `_build/notes/manual_fix.json`（人工转录的坏页题）＋ `_build/notes/my_notes.json`（⚡秒杀笔记，**每写一章就往这里加**，键＝题 id）。
+- 输入：`_build/work/questions2.json`（试题）＋ `answers.json`（解析）＋ `_build/notes/manual_fix.json`（人工转录的坏页题）＋ `_build/notes/my_*.json`（⚡秒杀笔记，键＝题 id；马原按章 `my_notes.json`/`my_ch*.json`，其余四科「书上无解析题」先补在 `my_mz/xg/sg/sx.json`，**以后写该科讲义时同 id 的新笔记放进后排序的文件即可覆盖**）＋ `_build/notes/jj.json`（📗 精讲原文，见下）。
+- **📗 精讲原文**：1000 题里有 182 道题书上只给「答案＋出处」、没有简析和点拨。`python3 _build/tools/jj_extract.py` 按出处页码和考点号从 `_build/ocr/精讲精练.txt` 截出考点段落（整段只存本地 `_build/work/jj_blocks.json`），再按 `notes/jj_pick.json` 挑句（`{题id: "0,3-5"}` 或 `{题id: {"t": 手写整段}}`，`""`＝段落不对口、不挂）、套 `notes/jj_ocrfix.json` 改识别错，写出 `notes/jj.json`（公开的只有挑出的几句）。挑句时用 `jj_extract.py dump 题id…` 看带编号的句子。**改完 pick 先跑 jj_extract 再跑 build_data。** 中文补丁一律先落成 JSON 文件再用 `merge_notes.py` 合并（heredoc 里写中文会撞编码问题）。
 - 从头再来：`ocr_book.py`（本机 Vision OCR，走 `osascript -l JavaScript ocr.js`，Swift 工具链坏了别用 swiftc）→ `dual.py`（试题：版面用 Vision、**文字优先用 PDF 自带文字层**，并学习形近字纠错表 `notes/ocr_fix.json`）→ `parse_q2.py` → `parse_a.py` → `build_data.py`（套用 `ocr_fix.json`＋人工表 `ocr_fix_static.json`）。
 - ⚠️ Vision 在这批扫描上常见形近字错：革→草、国→困/图、为→力、党→觉、善→普、事→小/水/班，以及**「具有」→「只有」这种改变题意的错**——只靠生僻字率抓不到，所以试题以文字层为准。
 - `_build/ocr/`、`_build/work/` 是整本书的识别文字，**只留本地，不推 GitHub**（.gitignore）。

@@ -167,6 +167,8 @@
     if (q.t === 'e' && q.ea) h += `<div class="ea"><div class="eh">📕 参考答案（肖·解析分册）<span class="note">——大题要背的是这里的<b>要点句</b>，不是材料</span></div>${hl(q.ea)}</div>`;
     if (q.jx) h += `<div class="jx"><div class="eh">📕 肖·简析</div>${hl(q.jx)}</div>`;
     if (q.db) h += `<div class="db"><div class="eh">📌 肖·点拨</div>${hl(q.db)}</div>`;
+    if (q.jj) h += `<div class="jj"><div class="eh">📗 精讲原文 · ${esc(q.jj.p)}</div>${q.jj.h ? `<div class="jjh">${esc(q.jj.h)}</div>` : ''}${hl(q.jj.t)}`
+      + (!q.jx && !q.db ? `<div class="note">书上这题只给了答案和出处，这是出处那一段的原文（本机识别，挑了与本题相关的句子，「……」处有删节）。</div>` : '') + `</div>`;
     if (q.lk) { const [u,tt] = q.lk.split('|'); h += `<a class="lk" href="../${u}">📖 本题知识点：${esc(tt)} →</a>`; }
     if (q.src) h += `<div class="src">出处：${esc(q.src)}（《精讲精练》页码 · 考点段落）</div>`;
     return h;

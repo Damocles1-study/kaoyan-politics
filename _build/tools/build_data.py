@@ -8,6 +8,9 @@ MY={}
 import glob
 for _f in sorted(glob.glob('/Users/zyx/Downloads/新威考研-资料/11408相关/政治/复盘中心/_build/notes/my_*.json')):
     MY.update(json.load(open(_f,encoding='utf-8')))   # my_notes.json(马原导论+ch1) + my_ch2.json … 每章一份
+# 📗 精讲原文：书上只给答案＋出处的题，由 jj_extract.py 按出处从精讲精练抽的考点原文（键＝题 id）
+try: JJ=json.load(open('/Users/zyx/Downloads/新威考研-资料/11408相关/政治/复盘中心/_build/notes/jj.json',encoding='utf-8'))
+except FileNotFoundError: JJ={}
 META={'my':('马克思主义基本原理','马原'),'mz':('毛泽东思想和中国特色社会主义理论体系概论','毛中特'),
       'xg':('习近平新时代中国特色社会主义思想概论','习概'),'sg':('中国近现代史纲要','史纲'),'sx':('思想道德与法治','思法')}
 OCRFIX=json.load(open('/Users/zyx/Downloads/新威考研-资料/11408相关/政治/复盘中心/_build/notes/ocr_fix.json',encoding='utf-8'))
@@ -30,6 +33,8 @@ def tail(s):
     s=re.sub(r'\s*(第[一二三四五]部分)?\s*(马克[思恩]主义基本原理|毛泽东思想和中国特色社会主义理论体系概论|习近平新时代中国特色社会主义思想概论|中国近现代史纲要|思想道德与法治)\s*[·•，,]?\s*(单项选择[题題]|多项选择[题題]|材料分析[题題])\s*$','',s)
     s=re.sub(r'\s*\d{0,3}2027\s*(考研政治\s*1000\s*题\W*)?[:：]?\s*$','',s)
     s=re.sub(r'小2027$','',s)
+    s=re.sub(r'(?<=[\u4e00-\u9fff”）③④])第[一二三四五六七八九十]+章\s*\S{2,40}$','',s)   # 页眉章名粘到选项尾
+    s=re.sub(r'(?<=[\u4e00-\u9fff])[-–]$','',s)
     return s
 def clean_field(s,lead):
     s=(s or '').strip()
@@ -68,6 +73,7 @@ for q in Q:
           'ans':a['ans'] if a else '', 'src':clean_field(a['src'],0) if a else '','jx':clean_field(a['jx'],0) if a else '',
           'db':clean_field(a['db'],0) if a else '','tag':a['tag'] if a else ''}
     if qid in MY: item['my']=MY[qid]
+    if qid in JJ and JJ[qid]['t']: item['jj']={'p':JJ[qid]['p'],'h':fix(JJ[qid]['h']),'t':fix(JJ[qid]['t'])}
     data[q['part']].append(item)
 qe={(q['part'],q['no']):q for q in Q if q['t']=='e'}
 MISSING={'my':'P60–64','xg':'P113–116','sg':'P154–156','sx':'P177 之后'}
