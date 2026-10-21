@@ -105,6 +105,7 @@ for lf in sorted(set(v for d in LECT_ALL().values() for v in d.values())):
         title=_h.unescape(re.sub(r'<[^>]+>','',h2.group(1))).strip() if h2 else sid
         for a in re.finditer(r'<a class="qlink" href="\.\./题库/刷题\.html\?p=(\w+)&(?:amp;)?t=([sme])&(?:amp;)?ch=(\d+)[^"]*">([^<]*)</a>',body):
             pp,tt,ch,label=a.group(1),a.group(2),int(a.group(3)),a.group(4)
+            label=re.sub(r'^.*?(?=单选|多选|分析题)','',label)   # 「第 7 章单选 53」的 7 不是题号
             if re.search(r'\d+\s*题\s*$',label) or not re.search(r'\d',label):
                 nos=[x['no'] for x in data[pp] if x['t']==tt and x['ch']==ch]
             else:

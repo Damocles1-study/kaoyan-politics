@@ -231,6 +231,10 @@ select option{background:var(--card);color:var(--ink)}
 .toc a:hover{color:var(--accent);border-left-color:var(--accent);background:var(--bg)}
 .qlink{display:inline-block;margin:4px 6px 0 0;font-size:.86rem;padding:1px 10px;border-radius:2px;background:var(--card);border:1.5px solid var(--ink-line);box-shadow:2px 2px 0 var(--drop);text-decoration:none;font-weight:800;transition:transform .12s,box-shadow .12s}
 .qlink:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--drop)}
+.qlink .qdone{display:inline-block;margin-left:6px;padding:0 5px;font-size:.74rem;font-weight:800;color:var(--muted);border-left:1.5px solid var(--line)}
+.qlink.all-done .qdone{color:var(--green)}
+.qlink.sect{background:var(--ink);color:var(--card)}
+.qlink.sect .qdone{color:var(--card);opacity:.8;border-left-color:currentColor}
 .qlinks{margin-top:12px;padding-top:10px;border-top:2px dashed var(--line);font-size:.88rem;color:var(--muted)}
 .fab{position:fixed;right:16px;bottom:20px;z-index:9;border-radius:4px;padding:9px 16px;color:#fff;background:var(--accent);border:2.5px solid #151412;font-weight:900;font-family:inherit;font-size:.9rem;cursor:pointer;
   box-shadow:4px 4px 0 #151412;transition:transform .12s var(--ease),box-shadow .12s,bottom .3s var(--ease)}

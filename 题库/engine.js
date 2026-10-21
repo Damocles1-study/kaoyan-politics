@@ -6,6 +6,7 @@
  * 刷法 fm：one 逐题（一屏一题当场判） · flow 连刷（一页一组、每题当场判） · exam 模考（一组做完交卷再判，可限时）
  *          · read 背题（答案解析直接摊开）。模考未交卷的作答存 'pol_exam_v1'，刷新不丢。
  * URL 参数：p t ch mode(seq/undone/wrong/rand) fm(one/flow/exam/read) n(每组题数，0=整章) q(跳到题 id)；旧链接的 view=read 仍然有效
+ *          讲义跳来时另带 ids(只刷这几题) back(回程的讲义地址#节) lab(节名)
  */
 (function(){
   const POL = window.POL || {};
@@ -70,14 +71,23 @@
     n: SIZES.includes(n0) ? n0 : 20,
     timed: !!pref.timed,
     i: 0, g: 0, dir: 0, list: [], picked: new Set(), done: false,
-    custom: null, onlyWrong: false, sess: null
+    custom: null, onlyWrong: false, sess: null,
+    sect: sectFrom(qp)                  // 从讲义某一节跳来：ids 只刷本节，back 回到那一节
   };
+  function sectFrom(qp){
+    const back = qp.get('back') || '', ids = (qp.get('ids') || '').split(',').filter(x => /^[a-z]+-[sme]-\d+$/.test(x));
+    const ok = /^\.\.\/讲义\/[^\/?:]+\.html(#[\w-]+)?$/.test(back);   // 只认站内讲义，防 javascript: 之类
+    return {ids: ok ? ids : [], back: ok ? back : '', lab: ok ? (qp.get('lab') || '') : ''};
+  }
+  const backBtn = (txt, cls) => st.sect.back ? `<a class="btn ${cls||''}" data-back href="${esc(st.sect.back)}">${txt}</a>` : '';
+  const endBack = () => backBtn(st.sect.ids.length ? '✅ 本节刷完 · 回讲义原位' : '← 回讲义原位', 'pri');
 
   function allQs(){ return Object.values(POL).flatMap(S => S.qs.map(q => Object.assign(q,{_p:S.key}))); }
   function isWrong(q){ const r = rec[q.id]; return r && r.w > 0 && !(r.streak >= 2); }
 
   function buildList(){
-    if (st.custom){ const m = new Map(allQs().map(q => [q.id, q])); st.list = st.custom.map(id => m.get(id)).filter(Boolean); return; }
+    const ids = st.custom || (st.sect.ids.length ? st.sect.ids : null);
+    if (ids){ const m = new Map(allQs().map(q => [q.id, q])); st.list = ids.map(id => m.get(id)).filter(Boolean); return; }
     let qs;
     if (st.p === 'all') qs = allQs(); else qs = (POL[st.p] ? POL[st.p].qs.map(q=>Object.assign(q,{_p:st.p})) : []);
     qs = qs.filter(q => st.t === 'all' || q.t === st.t);
@@ -122,8 +132,11 @@
     let h = `共 <b>${L.length}</b> 题 · 已做 <b>${d}</b> · 正确率 <b>${acc==null?'—':acc+'%'}</b>`
       + (st.fm!=='one' && L.length ? ` · 分 <b>${gcount()}</b> 组` : '')
       + (st.t==='s'?' <span class="note">（肖：单选 ≥70% 达标）</span>':st.t==='m'?' <span class="note">（肖：多选 50–55% 达标）</span>':'');
+    if (st.sect.back) h += `<div class="from"><span>📖 ${st.sect.ids.length ? `只刷讲义本节 <b>${st.sect.ids.length}</b> 题` : '从讲义跳来'}${st.sect.lab ? ' · ' + esc(st.sect.lab) : ''}</span>`
+      + `<span class="acts">${backBtn('← 回讲义原位', 'sm pri')}${st.sect.ids.length ? '<button class="btn sm" id="sectAll">刷整章</button>' : ''}</span></div>`;
     if (st.custom) h += `<div class="redo">🔁 错题再练 · ${L.length} 题<button class="btn sm" id="exitRedo">退出再练</button></div>`;
     $('#bar').innerHTML = h;
+    const sa = $('#sectAll'); if (sa) sa.onclick = dropSect;
     const ex = $('#exitRedo'); if (ex) ex.onclick = () => { st.custom = null; st.g = 0; st.i = 0; st.sess = null; buildList(); render(); };
   }
 
@@ -233,6 +246,7 @@
     let h = verdictHTML(q, p, false) + restHTML(q);
     if (q.t === 'e') h += selfHTML(q);
     if (st.i < st.list.length-1) h += `<div class="act"><button class="btn pri" id="goNext">下一题 →</button></div>`;
+    else if (st.sect.back) h += `<div class="act">${endBack()}</div>`;
     const ana = $('#ana'); ana.innerHTML = h; ana.className = 'drop-in';
     if (p && p !== q.ans) anim($('#q .qcard'), 'shake');
     const gn = $('#goNext'); if (gn) gn.onclick = () => go(1);
@@ -252,12 +266,12 @@
   function saveDraft(){ const s = st.sess; if (s && !s.submitted) save(DRAFT, {gkey:s.gkey, picks:s.picks, t0:s.t0}); }
   function cardHTML(q, k, s, G){
     const last = k === G.length-1;
-    const more = last ? (st.g < gcount()-1 ? `<div class="act"><button class="btn sm" data-a="ngroup">下一组 →</button></div>` : '')
+    const more = last ? (st.g < gcount()-1 ? `<div class="act"><button class="btn sm" data-a="ngroup">下一组 →</button></div>` : st.sect.back ? `<div class="act">${endBack()}</div>` : '')
                       : `<div class="act"><button class="btn sm" data-a="next">下一题 ↓</button></div>`;
     let b = metaHTML(q, k+1, st.fm==='exam' && !s.submitted) + `<div class="stem">${hlStem(q.stem)}</div>`;
     if (st.fm === 'read'){
       if (q.t !== 'e') b += optsHTML(q, '', {read:true});
-      b += verdictHTML(q, null, true) + restHTML(q);
+      b += verdictHTML(q, null, true) + restHTML(q) + (last ? more : '');
     } else if (st.fm === 'flow'){
       const j = s.judged[q.id];
       if (q.t === 'e') b += j ? `<div class="drop-in">${restHTML(q)}${selfHTML(q, s.self[q.id])}</div>` + (s.self[q.id]!=null ? more : '')
@@ -374,7 +388,7 @@
       <div class="info"><div class="big">${s.score} <span class="note">/ ${s.total} 分</span></div>
       ${[s.sn ? `单选 <b>${s.so}</b>/${s.sn}` : '', s.mn ? `多选 <b>${s.mo}</b>/${s.mn}` : '', `用时 <b>${mmss(s.used)}</b>${s.auto?'（到时自动交卷）':''}`].filter(Boolean).join(' · ')}
       <p class="note">按真题计分：单选 1 分、多选 2 分（少选多选都不得分）。肖的达标线：单选 ≥70%、多选 50–55%。</p>
-      <div class="act">${s.wrong.length ? `<button class="btn pri" data-x="redo">🔁 错题再练（${s.wrong.length}）</button><button class="btn" data-x="only">${st.onlyWrong?'显示全部':'只看错题'}</button>` : '<span class="pill green">🎉 本组全对</span>'}${st.g < gcount()-1 ? '<button class="btn" data-x="next">下一组 →</button>' : ''}</div></div></div></section>`;
+      <div class="act">${s.wrong.length ? `<button class="btn pri" data-x="redo">🔁 错题再练（${s.wrong.length}）</button><button class="btn" data-x="only">${st.onlyWrong?'显示全部':'只看错题'}</button>` : '<span class="pill green">🎉 本组全对</span>'}${st.g < gcount()-1 ? '<button class="btn" data-x="next">下一组 →</button>' : endBack()}</div></div></div></section>`;
     requestAnimationFrame(() => requestAnimationFrame(() => { const r = $('#ring'); if (r) r.style.setProperty('--p', acc); }));
     box.querySelectorAll('[data-x]').forEach(b => b.onclick = () => {
       const x = b.dataset.x;
@@ -413,6 +427,12 @@
     st.fm === 'one' ? renderOne() : renderBatch();
   }
   function reset(){ st.i = 0; st.g = 0; st.sess = null; st.custom = null; st.onlyWrong = false; }
+  /* 退出「只刷本节」：回程地址保留，范围回到整章 */
+  function dropSect(){
+    if (!st.sect.ids.length) return;
+    st.sect.ids = []; const u = new URL(location.href); u.searchParams.delete('ids'); history.replaceState(null, '', u);
+    reset(); buildList(); render();
+  }
 
   function init(){
     if (!Object.keys(POL).length){ document.body.insertAdjacentHTML('beforeend','<p style="padding:20px">题库数据没有加载。</p>'); return; }
@@ -425,10 +445,17 @@
     if (jump && st.fm !== 'one'){ const k = st.list.findIndex(q=>q.id===jump) - st.g*gsize(); if (k >= 0) setTimeout(() => scrollToCard(k), 350); }
     if (window.PolUI) PolUI.seg($('#fmSeg'));
     $('#list').addEventListener('click', onListClick);
-    $('#selP').onchange = e => { st.p = e.target.value; st.ch='all'; reset(); fillSelectors(); buildList(); savePref(); render(); };
-    $('#selT').onchange = e => { st.t = e.target.value; reset(); fillSelectors(); buildList(); savePref(); render(); };
-    $('#selCh').onchange = e => { st.ch = e.target.value; reset(); buildList(); savePref(); render(); };
-    $('#selMode').onchange = e => { st.mode = e.target.value; reset(); buildList(); savePref(); render(); };
+    if (st.sect.back) $('.crumb').insertAdjacentHTML('afterbegin', `<a data-back href="${esc(st.sect.back)}">📖 回讲义原位</a>`);
+    /* 回讲义：刚从那一页过来就 history.back()，浏览器会把滚动位置原样还回去；否则按 #节 打开 */
+    document.addEventListener('click', e => {
+      const a = e.target.closest('[data-back]'); if (!a) return;
+      try { if (document.referrer && new URL(document.referrer).pathname === new URL(a.href).pathname && history.length > 1){ e.preventDefault(); history.back(); } } catch(err){}
+    });
+    const unSect = () => { st.sect.ids = []; const u = new URL(location.href); u.searchParams.delete('ids'); history.replaceState(null, '', u); };
+    $('#selP').onchange = e => { unSect(); st.p = e.target.value; st.ch='all'; reset(); fillSelectors(); buildList(); savePref(); render(); };
+    $('#selT').onchange = e => { unSect(); st.t = e.target.value; reset(); fillSelectors(); buildList(); savePref(); render(); };
+    $('#selCh').onchange = e => { unSect(); st.ch = e.target.value; reset(); buildList(); savePref(); render(); };
+    $('#selMode').onchange = e => { unSect(); st.mode = e.target.value; reset(); buildList(); savePref(); render(); };
     $('#selN').onchange = e => { const first = st.g * gsize(); st.n = +e.target.value; st.g = Math.floor(first / gsize()); st.sess = null; savePref(); render(); };
     document.querySelectorAll('#fmSeg button').forEach(b => b.onclick = () => {
       const f = b.dataset.f; if (f === st.fm) return;

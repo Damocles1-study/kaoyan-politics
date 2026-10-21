@@ -128,5 +128,62 @@
 
     // 4) 分段控件
     document.querySelectorAll('.seg').forEach(seg);
+
+    // 5) 讲义 → 刷题：qlink 带上本节题号 ids 与回程地址 back，刷完一键回到这一节；节末显示完成度
+    qlinks();
+    window.addEventListener('pageshow', function(e){ if (e.persisted) qlinks(); restoreY(); });
+    document.addEventListener('click', function(e){
+      if (e.target.closest('a.qlink')) try { sessionStorage.setItem('pol_ret', JSON.stringify({f: location.pathname, y: Math.round(scrollY)})); } catch(err){}
+    });
   });
+
+  /* 「单选 19–20、23」→ ['sx-s-19','sx-s-20','sx-s-23']；「导论单选 7 题」这种整章链接返回 null */
+  function qids(p, t, label){
+    var m = label.match(/(?:单选|多选|分析题)\s*(.*)$/);
+    if (!m || !/\d/.test(m[1]) || /题\s*$/.test(m[1])) return null;
+    var ids = [];
+    m[1].replace(/(\d+)\s*[–\-~～]\s*(\d+)|(\d+)/g, function(_, a, b, c){
+      if (c) ids.push(+c); else for (var i = +a; i <= +b; i++) ids.push(i);
+    });
+    return ids.map(function(n){ return p + '-' + t + '-' + n; });
+  }
+  /* 从刷题页「回讲义原位」回来（后退）时，滚回点链接那一刻的位置——不靠浏览器自己恢复，跨页动画会把它弄丢 */
+  function restoreY(){
+    var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+    var r = null; try { r = JSON.parse(sessionStorage.getItem('pol_ret')); } catch(e){}
+    if (!r || r.f !== location.pathname || !(nav && nav.type === 'back_forward')) return;
+    var go = function(){ window.scrollTo({top: r.y, behavior: 'instant'}); };
+    go(); requestAnimationFrame(go); setTimeout(go, 120); setTimeout(go, 450);
+  }
+  function qlinks(){
+    var boxes = document.querySelectorAll('.qlinks'); if (!boxes.length) return;
+    var rec = load('pol_rec_v1', {}), file = decodeURIComponent(location.pathname.split('/').pop());
+    var done = function(ids){ return ids.filter(function(id){ return rec[id]; }).length; };
+    var badge = function(a, ids){
+      var old = a.querySelector('.qdone'); if (old) old.remove();
+      var d = done(ids); a.classList.toggle('all-done', d === ids.length);
+      a.insertAdjacentHTML('beforeend', '<span class="qdone">' + (d === ids.length ? '✓' : d + '/' + ids.length) + '</span>');
+    };
+    boxes.forEach(function(box){
+      var sec = box.closest('section[id]'), h2 = sec && sec.querySelector('h2');
+      var back = '../讲义/' + file + (sec ? '#' + sec.id : '');
+      var lab = h2 ? h2.textContent.replace(/^\s*\d+\s*/, '').trim().slice(0, 24) : '';
+      var all = [], p0 = null, ch0 = null, mixed = false;
+      box.querySelectorAll('a.qlink:not(.sect)').forEach(function(a){
+        var u = new URL(a.getAttribute('href'), location.href), p = u.searchParams.get('p'), t = u.searchParams.get('t');
+        var ids = qids(p, t, a.dataset.label || (a.dataset.label = a.textContent));
+        u.searchParams.set('back', back); if (lab) u.searchParams.set('lab', lab);
+        if (ids){ u.searchParams.set('ids', ids.join(',')); badge(a, ids); all = all.concat(ids); }
+        if (p0 && p0 !== p) mixed = true; p0 = p; if (ch0 == null) ch0 = u.searchParams.get('ch');
+        a.href = a.getAttribute('href').split('?')[0] + '?' + u.searchParams.toString();
+      });
+      // 一节有两种题型以上：再给一个「本节一起刷」
+      var sa = box.querySelector('a.qlink.sect');
+      if (all.length > 1 && box.querySelectorAll('a.qlink:not(.sect)').length > 1 && !mixed){
+        if (!sa){ sa = document.createElement('a'); sa.className = 'qlink sect'; sa.textContent = '▶ 本节一起刷 · ' + all.length + ' 题'; box.appendChild(sa); }
+        var q = new URLSearchParams({p: p0, t: 'all', ch: ch0, ids: all.join(','), back: back}); if (lab) q.set('lab', lab);
+        sa.href = '../题库/刷题.html?' + q.toString(); badge(sa, all);
+      }
+    });
+  }
 })();
