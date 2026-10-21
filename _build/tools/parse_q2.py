@@ -32,11 +32,11 @@ def add_opts(text):
     while True:
         k=len(cur['opts'])
         if k>=4: return text
-        m=re.match(rf'^{"ABCD"[k]}\s*[.．,，、·]\s*',text)
+        m=re.match(rf'^{"ABCD"[k]}(?:\s*[.．,，、·]\s*|\s*(?=[\u4e00-\u9fff“《①]))',text)
         if not m: return text
         text=text[m.end():]
         if k<3:
-            m2=re.search(rf'\s{"ABCD"[k+1]}\s*[.．,，、·]|(?<=[^A-Za-z]){"ABCD"[k+1]}\s*[.．]',text)
+            m2=re.search(rf'\s{"ABCD"[k+1]}\s*[.．,，、·]|(?<=[^A-Za-z]){"ABCD"[k+1]}\s*[.．,，、]|\s{"ABCD"[k+1]}(?=[\u4e00-\u9fff“《①])',text)
             if m2:
                 cur['opts'].append(text[:m2.start()].strip()); text=text[m2.start():].strip(); continue
         cur['opts'].append(text.strip()); return ''

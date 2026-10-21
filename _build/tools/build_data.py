@@ -10,8 +10,12 @@ for _f in sorted(glob.glob('/Users/zyx/Downloads/新威考研-资料/11408相关
     MY.update(json.load(open(_f,encoding='utf-8')))   # my_notes.json(马原导论+ch1) + my_ch2.json … 每章一份
 META={'my':('马克思主义基本原理','马原'),'mz':('毛泽东思想和中国特色社会主义理论体系概论','毛中特'),
       'xg':('习近平新时代中国特色社会主义思想概论','习概'),'sg':('中国近现代史纲要','史纲'),'sx':('思想道德与法治','思法')}
+OCRFIX=json.load(open('/Users/zyx/Downloads/新威考研-资料/11408相关/政治/复盘中心/_build/notes/ocr_fix.json',encoding='utf-8'))
+OCRFIX.update(json.load(open('/Users/zyx/Downloads/新威考研-资料/11408相关/政治/复盘中心/_build/notes/ocr_fix_static.json',encoding='utf-8')))
+OCRFIX=dict(sorted(OCRFIX.items(),key=lambda kv:-len(kv[0])))
 def fix(s):
     if not s: return s
+    for a,b in OCRFIX.items(): s=s.replace(a,b)
     s=re.sub(r'(?<![自感错直知视听发察警睡幻味嗅触先后不])觉(?=的|中央|员|组织|和国家|内|章|风|委|史|纪|对|最|政|代会|旗|性|和人民|领导|建|校|课)',r'党',s)
     for a,b in [('我困','我国'),('中困','中国'),('困家','国家'),('困情','国情'),('困际','国际'),('家图情','家国情'),('中图式','中国式'),
                 ('图家','国家'),('祖图','祖国'),('图际','国际'),('图情','国情'),('发杨','发扬'),('昂杨','昂扬'),('弘杨','弘扬'),('宣杨','宣扬'),
@@ -21,8 +25,9 @@ def fix(s):
     return s
 def LECT_ALL():
     # 讲义登记表：科目 → {章号: 讲义路径}。新写一章就在这里加一行
-    return {'my':{0:'讲义/马原_导论与第1章.html',1:'讲义/马原_导论与第1章.html',2:'讲义/马原_第2章.html'}}
+    return {'my':{0:'讲义/马原_导论与第1章.html',1:'讲义/马原_导论与第1章.html',2:'讲义/马原_第2章.html',3:'讲义/马原_第3章.html',4:'讲义/马原_第4章.html'}}
 def tail(s):
+    s=re.sub(r'\s*(第[一二三四五]部分)?\s*(马克[思恩]主义基本原理|毛泽东思想和中国特色社会主义理论体系概论|习近平新时代中国特色社会主义思想概论|中国近现代史纲要|思想道德与法治)\s*[·•，,]?\s*(单项选择[题題]|多项选择[题題]|材料分析[题題])\s*$','',s)
     s=re.sub(r'\s*\d{0,3}2027\s*(考研政治\s*1000\s*题\W*)?[:：]?\s*$','',s)
     s=re.sub(r'小2027$','',s)
     return s
