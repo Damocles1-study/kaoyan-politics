@@ -25,6 +25,8 @@
 ## 本机记录（localStorage）
 
 - `pol_rec_v1`：`{题id: {n 作答次数, ok 最近对错, w 累计错次, streak 连对次数, pick, self(分析题自评), ts}}`；**连对 2 次自动出错题本**。
+- 题卡上的「做过 n 次 · ✔对 ✘错」：累计对次＝`n − w`（不另存字段，老记录直接可用）。
+- `pol_daily_v1`：每日刷题流水 `{'2026-10-26': {n 作答次数, ok 答对次数, p:{科: [n, ok]}, est?}}`，由 `common.js` 的 `PolUI.logDaily` 在刷题页 / 答题卡每判一题时记一笔；统计页据此画「每日作答量（对/错堆叠柱）＋ 每日正确率」两张趋势图。上线前的日子第一次读取时按每题最后一次作答日期补出，标 `est`（图上写「估」）。导出 / 导入会连同这份流水一起搬。
 - `pol_pref_v1`：上次的科目 / 题型 / 章节 / 刷法 `fm` / 每组题数 `n` / 是否限时 `timed`。`pol_exam_v1`：模考未交卷的作答草稿（刷新不丢，12 小时过期）。
 - `pol_recite_v2`：背诵模式开关与遮哪几种颜色。`pol_cards_v1`：背诵卡记忆（`k`：0 没记住 · 1 模糊 · ≥2 已熟）。`pol_memo_v1`：大题必背清单勾选。`pol_ph16_v1` / `pol_sx14_v1`：十六原理 / 思法十四专题的「✓ 背熟」勾选。
 - 首页顶部的切换条链到英语一复盘中心（`kaoyan-english` 的 Pages），英语首页顶部也链回本站。
@@ -42,6 +44,7 @@
 python3 _build/tools/build_data.py
 ```
 
+- **题库文字订正**（2026-10-26）：`_build/notes/text_fix.json`＝逐题 `[字段, 原文, 改为]`（字段 stem / A–D），在 `fix()`+`tail()` 之后套用，原文找不到会打印 `TEXTFIX MISS`。来源是三方比对：**PDF 文字层 × 本机 Vision 识别 × 原书页图**——文字层本身也有 OCR 错（「宜传」「戏盲说」「政治安全足国家安全」都是文字层的错），两路识别不一致的地方才回页图定夺。修不了 / 原扫描模糊的题写进 `_build/notes/check_book.json`（`{题id: {q: 题干上方说明, opts: {字母: 说明}}}`），刷题页在题干上方挂说明条、在选项后挂「📖 对照习题本 P..」。
 - 输入：`_build/work/questions2.json`（试题）＋ `answers.json`（解析）＋ `_build/notes/manual_fix.json`（人工转录的坏页题）＋ `_build/notes/my_*.json`（⚡秒杀笔记，键＝题 id；马原按章 `my_notes.json`/`my_ch*.json`，其余四科「书上无解析题」先补在 `my_mz/xg/sg/sx.json`，**以后写该科讲义时同 id 的新笔记放进后排序的文件即可覆盖**）＋ `_build/notes/jj.json`（📗 精讲原文，见下）。
 - **📗 精讲原文**：1000 题里有 182 道题书上只给「答案＋出处」、没有简析和点拨。`python3 _build/tools/jj_extract.py` 按出处页码和考点号从 `_build/ocr/精讲精练.txt` 截出考点段落（整段只存本地 `_build/work/jj_blocks.json`），再按 `notes/jj_pick.json` 挑句（`{题id: "0,3-5"}` 或 `{题id: {"t": 手写整段}}`，`""`＝段落不对口、不挂）、套 `notes/jj_ocrfix.json` 改识别错，写出 `notes/jj.json`（公开的只有挑出的几句）。挑句时用 `jj_extract.py dump 题id…` 看带编号的句子。**改完 pick 先跑 jj_extract 再跑 build_data。** 中文补丁一律先落成 JSON 文件再用 `merge_notes.py` 合并（heredoc 里写中文会撞编码问题）。
 - 从头再来：`ocr_book.py`（本机 Vision OCR，走 `osascript -l JavaScript ocr.js`，Swift 工具链坏了别用 swiftc）→ `dual.py`（试题：版面用 Vision、**文字优先用 PDF 自带文字层**，并学习形近字纠错表 `notes/ocr_fix.json`）→ `parse_q2.py` → `parse_a.py` → `build_data.py`（套用 `ocr_fix.json`＋人工表 `ocr_fix_static.json`）。

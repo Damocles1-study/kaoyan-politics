@@ -2,7 +2,9 @@
  * 数据：各科 data_*.js 往 window.POL 里挂 {key,name,short,chapters:{ch:名},qs:[...]}
  * 题目字段：id, t(s单选/m多选/e分析), ch, no, page(书页), stem, opts[4], ans('A'|'ACD'|null),
  *          src(出处), jx(简析), db(点拨), ea(分析题参考答案), tag(时政储备题等), my(⚡秒杀/形象记忆，Claude 补写)
+ *          chk(修不了 / 原扫描模糊：{q:题干上方说明, opts:{字母:说明}} → 选项后挂「📖 对照习题本」)
  * 记录：localStorage 'pol_rec_v1' = {id:{n:作答次数,ok:最近一次对错,w:累计错次,streak:连对次数,pick,self,ts}}
+ *       累计对次＝n−w（题卡上显示 ✔对 ✘错）；每判一题另记一笔每日流水 'pol_daily_v1'（common.js 的 PolUI.logDaily），统计页画趋势图
  * 刷法 fm：one 逐题（一屏一题当场判） · flow 连刷（一页一组、每题当场判） · exam 模考（一组做完交卷再判，可限时）
  *          · read 背题（答案解析直接摊开）。模考未交卷的作答存 'pol_exam_v1'，刷新不丢。
  * URL 参数：p t ch mode(seq/undone/wrong/rand) fm(one/flow/exam/read) n(每组题数，0=整章) q(跳到题 id)；旧链接的 view=read 仍然有效
@@ -131,6 +133,7 @@
     const acc = ch.length ? Math.round(100*ch.filter(q=>rec[q.id].ok).length/ch.length) : null;
     let h = `共 <b>${L.length}</b> 题 · 已做 <b>${d}</b> · 正确率 <b>${acc==null?'—':acc+'%'}</b>`
       + (st.fm!=='one' && L.length ? ` · 分 <b>${gcount()}</b> 组` : '')
+      + (window.PolUI && PolUI.dailyLog ? (() => { const d = PolUI.dailyLog()[PolUI.dayKey()]; return ` · 今天已刷 <b>${d ? d.n : 0}</b> 题 <a href="统计.html">趋势 →</a>`; })() : '')
       + (st.t==='s'?' <span class="note">（肖：单选 ≥70% 达标）</span>':st.t==='m'?' <span class="note">（肖：多选 50–55% 达标）</span>':'');
     if (st.sect.back) h += `<div class="from"><span>📖 ${st.sect.ids.length ? `只刷${st.sect.src === '讲义' ? '讲义本节' : '这张背诵卡关联的'} <b>${st.sect.ids.length}</b> 题` : `从${st.sect.src}跳来`}${st.sect.lab ? ' · ' + esc(st.sect.lab) : ''}</span>`
       + `<span class="acts">${backBtn(`← 回${st.sect.src}原位`, 'sm pri')}${st.sect.ids.length ? '<button class="btn sm" id="sectAll">刷整章</button>' : ''}</span></div>`;
@@ -145,17 +148,19 @@
     const ok = pick === q.ans, r = rec[q.id] || {n:0,w:0,streak:0};
     r.n++; r.ok = ok; r.pick = pick; r.ts = Date.now();
     if (ok) r.streak = (r.streak||0)+1; else { r.w++; r.streak = 0; }
-    rec[q.id] = r; save(KEY, rec); return ok;
+    rec[q.id] = r; save(KEY, rec); daily(q, ok); return ok;
   }
   function recordSelf(q, s){
     const r = rec[q.id] || {n:0,w:0,streak:0};
     r.n++; r.self = s; r.ok = s===2; r.ts = Date.now(); if (s===2) r.streak=(r.streak||0)+1; else { r.w++; r.streak=0; }
-    rec[q.id] = r; save(KEY, rec);
+    rec[q.id] = r; save(KEY, rec); daily(q, s===2);
   }
+  const daily = (q, ok) => { if (window.PolUI && PolUI.logDaily) PolUI.logDaily(q.id, ok); };
   function metaHTML(q, idx, hideHist){
     const S = POL[q._p], r = rec[q.id];
     const tag = q.tag ? `<span class="pill gold">${esc(q.tag)}</span>` : '';
-    const hist = r && !hideHist ? `<span class="pill ${r.ok?'green':'red'}">做过 ${r.n} 次${r.w?' · 错 '+r.w:''}</span>` : '';
+    /* 累计对错：n 次作答里错了 w 次，其余都算对（老记录不用迁移） */
+    const hist = r && !hideHist ? `<span class="pill ${r.ok?'green':'red'}" title="累计作答 ${r.n} 次：对 ${Math.max(0,r.n-(r.w||0))} 次、错 ${r.w||0} 次；最近一次${r.ok?'做对':'做错'}">做过 ${r.n} 次 · ✔${Math.max(0,r.n-(r.w||0))} ✘${r.w||0}</span>` : '';
     return `<div class="qmeta">${idx?`<span class="qidx">${idx}</span>`:''}<span class="subj ${q._p}">${S.short}</span><span class="pill">${esc(S.chapters[q.ch]||'')}</span><span class="qno">${TYPES[q.t]} 第 ${q.no} 题</span><span class="pill">书 P${q.page}</span>${tag}${hist}</div>`;
   }
   /* res：null＝可作答（sel 为已勾选字母）；{pick}＝已判；{read:true}＝背题直接标答案 */
@@ -165,7 +170,15 @@
       if (res){ c += ' lock'; const inA = ans.includes(L), inP = !!(res.pick && res.pick.includes(L));
         if (inA) c += (inP || res.read) ? ' right' : ' miss'; else if (inP) c += ' wrong'; }
       else if (sel && sel.includes(L)) c += ' sel';
-      return `<button class="${c}" data-k="${L}"><span class="ol">${L}</span><span class="ot">${fmt(o)}</span></button>`; }).join('') + `</div>`;
+      return `<button class="${c}" data-k="${L}"><span class="ol">${L}</span><span class="ot">${fmt(o)}${chkTag(q, L)}</span></button>`; }).join('') + `</div>`;
+  }
+  /* 修不了 / 原扫描模糊的题：选项后挂「📖 对照习题本」，题干上方挂说明条（数据见 _build/notes/check_book.json） */
+  function chkTag(q, L){
+    const c = q.chk && q.chk.opts; if (!c || !(L in c)) return '';
+    return ` <span class="bookchk" title="${esc(c[L] || '这一项的文字可能与纸质书不一致，请对照习题本')}">📖 对照习题本 P${q.page}</span>`;
+  }
+  function chkBanner(q){
+    return q.chk && q.chk.q ? `<div class="chkbar">📖 ${esc(q.chk.q)}（习题本 P${q.page}）</div>` : '';
   }
   function verdictHTML(q, pick, read){
     if (q.t === 'e') return '';
@@ -199,7 +212,7 @@
     st.i = Math.max(0, Math.min(st.i, st.list.length-1));
     const q = st.list[st.i];
     st.picked = new Set(); st.done = false;
-    let h = metaHTML(q) + `<div class="stem">${hlStem(q.stem)}</div>`;
+    let h = metaHTML(q) + `${chkBanner(q)}<div class="stem">${hlStem(q.stem)}</div>`;
     if (q.t !== 'e'){
       h += optsHTML(q, '', null);
       if (q.t === 'm') h += `<div class="act"><button class="btn pri" id="submit">提交（多选）</button></div>`;
@@ -231,6 +244,7 @@
     if (!st.picked.size) return;
     const p = sortStr(st.picked);
     record(q, p); showAnswer(p);
+    const mt = $('#q .qmeta'); if (mt) mt.outerHTML = metaHTML(q);   // 刷新「做过 n 次 · ✔ ✘」
     stat(); renderGrid();
   }
   function showAnswer(p){
@@ -268,7 +282,7 @@
     const last = k === G.length-1;
     const more = last ? (st.g < gcount()-1 ? `<div class="act"><button class="btn sm" data-a="ngroup">下一组 →</button></div>` : st.sect.back ? `<div class="act">${endBack()}</div>` : '')
                       : `<div class="act"><button class="btn sm" data-a="next">下一题 ↓</button></div>`;
-    let b = metaHTML(q, k+1, st.fm==='exam' && !s.submitted) + `<div class="stem">${hlStem(q.stem)}</div>`;
+    let b = metaHTML(q, k+1, st.fm==='exam' && !s.submitted) + `${chkBanner(q)}<div class="stem">${hlStem(q.stem)}</div>`;
     if (st.fm === 'read'){
       if (q.t !== 'e') b += optsHTML(q, '', {read:true});
       b += verdictHTML(q, null, true) + restHTML(q) + (last ? more : '');

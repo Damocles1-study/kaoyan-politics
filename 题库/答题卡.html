@@ -59,8 +59,8 @@
   </section>
   <p class="note">批改记录与刷题页共用（同一题在两处做都算数）。分析题请到刷题页「看参考答案」后自评。</p>
 </div>
-<script src="data_my.js"></script><script src="data_mz.js"></script><script src="data_xg.js"></script><script src="data_sg.js"></script><script src="data_sx.js"></script>
-<script src="../assets/common.js?v=sect4"></script>
+<script src="data_my.js?v=fix1"></script><script src="data_mz.js?v=fix1"></script><script src="data_xg.js?v=fix1"></script><script src="data_sg.js?v=fix1"></script><script src="data_sx.js?v=fix1"></script>
+<script src="../assets/common.js?v=daily1"></script>
 <script>
 (function(){
   var POL=window.POL, KEY='pol_rec_v1', rec={}; try{rec=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){}
@@ -120,7 +120,7 @@
       var n=0, ok=0, wrongNos=[];
       L.forEach(function(q){ var p=picks[q.id]; if(!p) return; var row=document.querySelector('.row[data-id="'+q.id+'"]'); if(row.classList.contains('graded')) return;
         n++; var good=p===q.ans; if(good) ok++; else wrongNos.push(q.no);
-        var r=rec[q.id]||{n:0,w:0,streak:0}; r.n++; r.ok=good; r.pick=p; r.ts=Date.now(); if(good) r.streak=(r.streak||0)+1; else {r.w++; r.streak=0;} rec[q.id]=r;
+        var r=rec[q.id]||{n:0,w:0,streak:0}; r.n++; r.ok=good; r.pick=p; r.ts=Date.now(); if(good) r.streak=(r.streak||0)+1; else {r.w++; r.streak=0;} rec[q.id]=r; if(window.PolUI&&PolUI.logDaily) PolUI.logDaily(q.id,good);
         row.classList.add('graded', good?'done-ok':'done-bad'); row.classList.remove(good?'done-bad':'done-ok');
         row.querySelectorAll('.ls button').forEach(function(b){ var k=b.dataset.k, a=q.ans.indexOf(k)>=0, pk=p.indexOf(k)>=0; b.classList.remove('sel'); if(a&&pk) b.classList.add('right'); else if(a) b.classList.add('miss'); else if(pk) b.classList.add('wrong'); });
         var mk=row.querySelector('.mk'); mk.className='mk '+(good?'g':'r'); mk.textContent=good?'✓':'✗ '+q.ans;

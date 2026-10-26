@@ -11,6 +11,24 @@
   table.st tr.sum td{background:var(--accent-soft);font-weight:700}
   .bar{height:12px;border:2px solid var(--ink-line);background:var(--card);overflow:hidden;min-width:60px}
   .bar i{display:block;height:100%;background:var(--green);background-image:repeating-linear-gradient(-45deg,transparent 0 4px,rgba(0,0,0,.18) 4px 6px)}
+  .trend-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .trend-head .seg{flex:0 0 auto}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--ink2);font-weight:700}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:5px;vertical-align:-1px;border:1.5px solid var(--ink-line)}
+  .chart{position:relative;margin-top:6px}
+  .chart svg{display:block;width:100%;height:auto;overflow:visible}
+  .chart .grid line{stroke:var(--line,#ccc);stroke-width:1;opacity:.55}
+  .chart text{fill:var(--muted);font-size:11px;font-family:inherit}
+  .chart .ok{fill:var(--green)} .chart .bad{fill:var(--red)}
+  .chart .ln{fill:none;stroke:var(--blue);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+  .chart .dot{fill:var(--blue);stroke:var(--card);stroke-width:2}
+  .chart .ref{stroke:var(--green);stroke-width:1.5;stroke-dasharray:5 4}
+  .chart .hit{fill:transparent;cursor:crosshair}
+  .chart .hit:hover+.hl,.chart .hl.on{opacity:1}
+  .chart .hl{fill:var(--ink);opacity:0;pointer-events:none}
+  .tip{position:absolute;pointer-events:none;z-index:5;min-width:150px;padding:8px 10px;border:2px solid var(--ink-line);background:var(--card);color:var(--ink);font-size:.8rem;line-height:1.55;box-shadow:3px 3px 0 var(--drop);opacity:0;transition:opacity .12s}
+  .tip.on{opacity:1} .tip b{color:var(--accent)}
+  .ctitle{font-size:.88rem;font-weight:800;color:var(--ink2);margin:16px 0 2px}
   textarea{width:100%;min-height:90px;font:12px/1.5 ui-monospace,monospace;border:2px solid var(--ink-line);border-radius:4px;padding:10px;background:var(--card);color:var(--ink);box-shadow:inset 2px 2px 0 var(--bg2)}
 </style>
 </head>
@@ -20,6 +38,13 @@
   <header><h1>统计 ／ 错题本</h1><p class="sub">肖秀荣给的达标线：<b>单选 ≥70%</b>、<b>多选 50%–55%</b>。达标就进下一章，不达标先清错题本。</p></header>
   <section class="card"><h2>总览</h2><div class="stats" id="ov"></div>
     <p style="margin-top:12px"><a class="btn pri" href="刷题.html?p=all&t=all&mode=wrong">⚡ 五科错题一起刷</a></p></section>
+  <section class="card"><h2>每日刷题趋势</h2><div class="stats" id="dov"></div>
+    <div class="trend-head"><div class="seg" id="rangeSeg"><button data-r="14">近 14 天</button><button data-r="30" class="on">近 30 天</button><button data-r="0">全部</button></div>
+      <div class="legend"><span><i style="background:var(--green)"></i>答对</span><span><i style="background:var(--red)"></i>答错</span></div></div>
+    <div class="ctitle">每天做了多少题（柱高＝作答次数，同一题重做也算一次）</div><div class="chart" id="cN"></div>
+    <div class="ctitle">每天的正确率（虚线＝单选达标线 70%）</div><div class="chart" id="cA"></div>
+    <p class="note" id="dnote"></p>
+    <details><summary>按天看表格</summary><div class="gridwrap"><table class="st" id="dtb"></table></div></details></section>
   <section class="card"><h2>按科目 · 按章</h2><div class="gridwrap"><table class="st" id="tb"></table></div>
     <p class="note">「错题」＝做错过、且还没有连续做对 2 次的题。点数字直接进该章错题本。</p></section>
   <section class="card"><h2>换设备：导出 / 导入记录</h2>
@@ -29,7 +54,7 @@
     <p class="note" id="msg"></p></section>
 </div>
 <script src="meta.js"></script>
-<script src="../assets/common.js?v=sect4"></script>
+<script src="../assets/common.js?v=daily1"></script>
 <script>
 (function(){
   var KEY='pol_rec_v1', rec={};
@@ -59,13 +84,89 @@
     +'<div class="stat"><div class="v">'+(b.acc==null?'—':b.acc+'%')+'</div><div class="k">多选正确率</div></div>'
     +'<div class="stat"><div class="v">'+W+'</div><div class="k">错题本</div></div>';
   var box=document.getElementById('box'), msg=document.getElementById('msg');
-  document.getElementById('exp').onclick=function(){ box.value=JSON.stringify(rec); box.select(); msg.textContent='已导出 '+Object.keys(rec).length+' 条记录，复制下面的文本到另一台设备。'; };
+  document.getElementById('exp').onclick=function(){ box.value=JSON.stringify({rec:rec,daily:PolUI.dailyLog()}); box.select(); msg.textContent='已导出 '+Object.keys(rec).length+' 条记录，复制下面的文本到另一台设备。'; };
   document.getElementById('imp').onclick=function(){
-    try{ var x=JSON.parse(box.value), n=0; Object.keys(x).forEach(function(k){ if(!rec[k]||(x[k].n||0)>(rec[k].n||0)){rec[k]=x[k];n++;} });
+    try{ var x=JSON.parse(box.value), n=0;
+      if(x&&x.rec){ var dl=PolUI.dailyLog(); Object.keys(x.daily||{}).forEach(function(k){ if(!dl[k]||(x.daily[k].n||0)>(dl[k].n||0)) dl[k]=x.daily[k]; }); localStorage.setItem('pol_daily_v1',JSON.stringify(dl)); x=x.rec; } Object.keys(x).forEach(function(k){ if(!rec[k]||(x[k].n||0)>(rec[k].n||0)){rec[k]=x[k];n++;} });
       localStorage.setItem(KEY,JSON.stringify(rec)); msg.textContent='导入完成，更新了 '+n+' 条。刷新页面查看。'; }
     catch(e){ msg.textContent='导入失败：文本不是有效的导出记录。'; }
   };
-  document.getElementById('clr').onclick=function(){ if(confirm('确定清空本机全部刷题记录？此操作不可撤销（建议先导出备份）。')){ try{localStorage.removeItem(KEY);}catch(e){} location.reload(); } };
+  document.getElementById('clr').onclick=function(){ if(confirm('确定清空本机全部刷题记录？此操作不可撤销（建议先导出备份）。')){ try{localStorage.removeItem(KEY);localStorage.removeItem('pol_daily_v1');}catch(e){} location.reload(); } };
+})();
+
+/* ---------- 每日刷题趋势：读 pol_daily_v1（common.js 记的流水） ---------- */
+(function(){
+  if(!window.PolUI||!PolUI.dailyLog) return;
+  var L=PolUI.dailyLog(), NAME={my:'马原',mz:'毛中特',xg:'习概',sg:'史纲',sx:'思法'}, range=30;
+  var keys=Object.keys(L).sort(), today=PolUI.dayKey();
+  function addDays(k,n){var d=new Date(k+'T12:00:00');d.setDate(d.getDate()+n);return PolUI.dayKey(d.getTime());}
+  function sumFrom(k0){var n=0,ok=0;keys.forEach(function(k){if(k>=k0){n+=L[k].n;ok+=L[k].ok;}});return {n:n,ok:ok};}
+  var all=sumFrom('0000'), w7=sumFrom(addDays(today,-6)), td=L[today]||{n:0,ok:0};
+  var streak=0,k=today; if(!L[k]) k=addDays(k,-1); while(L[k]&&L[k].n){streak++;k=addDays(k,-1);}
+  function pct(o){return o.n?Math.round(100*o.ok/o.n)+'%':'—';}
+  document.getElementById('dov').innerHTML='<div class="stat"><div class="v">'+td.n+'</div><div class="k">今天做题 · 正确率 '+pct(td)+'</div></div>'
+    +'<div class="stat"><div class="v">'+w7.n+'</div><div class="k">近 7 天 · 日均 '+Math.round(w7.n/7)+'</div></div>'
+    +'<div class="stat"><div class="v">'+all.n+'</div><div class="k">累计作答 · 正确率 '+pct(all)+'</div></div>'
+    +'<div class="stat"><div class="v">'+streak+'</div><div class="k">连续刷题天数</div></div>';
+  var est=keys.some(function(k){return L[k].est;});
+  document.getElementById('dnote').textContent=(est?'标「估」的日子是在这张图上线（2026-10-26）之前：那时只存了每题「最后一次」作答的日期，所以这些天的题数偏少、只作参考；之后每做一题都会如实记一笔。':'')+'把鼠标移到柱子或点上看当天明细；手机上点一下。';
+  function days(){
+    var start=range?addDays(today,-(range-1)):(keys[0]||today), out=[], k=start;
+    if(keys[0]&&!range&&keys[0]<start) start=keys[0];
+    while(k<=today){out.push(k);k=addDays(k,1);} return out;
+  }
+  var tip=document.createElement('div'); tip.className='tip';
+  function tipHTML(k){var d=L[k]||{n:0,ok:0,p:{}};
+    var h='<b>'+k.slice(5).replace('-','月')+'日</b>'+(d.est?' <span class="note">（估）</span>':'')+'<br>作答 '+d.n+' 次 · 对 '+d.ok+' · 错 '+(d.n-d.ok)+'<br>正确率 '+pct(d);
+    var ps=Object.keys(d.p||{}); if(ps.length) h+='<br>'+ps.map(function(p){var a=d.p[p];return (NAME[p]||p)+' '+a[0]+'（对'+a[1]+'）';}).join('<br>');
+    return h;}
+  function bindTip(box){
+    if(!box.contains(tip)) box.appendChild(tip.cloneNode());
+    var t=box.querySelector('.tip');
+    box.querySelectorAll('.hit').forEach(function(r){
+      function show(){ box.querySelectorAll('.hl.on').forEach(function(x){x.classList.remove('on');});
+        var hl=r.nextElementSibling; if(hl) hl.classList.add('on');
+        t.innerHTML=tipHTML(r.getAttribute('data-k')); t.classList.add('on');
+        var bw=box.clientWidth, x=(+r.getAttribute('data-cx'))/+box.getAttribute('data-vw')*bw;
+        t.style.left=Math.max(0,Math.min(bw-t.offsetWidth,x-t.offsetWidth/2))+'px'; t.style.top='-6px'; t.style.transform='translateY(-100%)'; }
+      r.addEventListener('mouseenter',show); r.addEventListener('click',show);
+      r.addEventListener('mouseleave',function(){t.classList.remove('on');var hl=r.nextElementSibling;if(hl)hl.classList.remove('on');});
+    });
+  }
+  function nice(m){if(m<=10)return 10;var p=Math.pow(10,Math.floor(Math.log10(m))),f=m/p;return (f<=1?1:f<=2?2:f<=5?5:10)*p;}
+  function draw(){
+    var D=days(), n=D.length, W=Math.max(320,document.getElementById('cN').clientWidth||600), H=170, l=34, r=8, t=10, b=24, pw=W-l-r, ph=H-t-b;
+    var bw=pw/n, gap=Math.min(2,bw*.25), max=nice(Math.max(1,Math.max.apply(null,D.map(function(k){return L[k]?L[k].n:0;}))));
+    var lab=function(i){var step=Math.ceil(n/8);return ((n-1-i)%step===0)?'<text x="'+(l+bw*i+bw/2)+'" y="'+(H-6)+'" text-anchor="middle">'+D[i].slice(5).replace('-','/')+'</text>':'';};
+    var g='<g class="grid">'; [0,.5,1].forEach(function(f){var y=t+ph-ph*f;g+='<line x1="'+l+'" x2="'+(W-r)+'" y1="'+y+'" y2="'+y+'"/><text x="'+(l-6)+'" y="'+(y+4)+'" text-anchor="end">'+Math.round(max*f)+'</text>';}); g+='</g>';
+    var bars='', hits='';
+    D.forEach(function(k,i){ var d=L[k]; var x=l+bw*i+gap/2, w=Math.max(1,bw-gap), cx=l+bw*i+bw/2;
+      if(d&&d.n){ var hOk=ph*d.ok/max, hBad=ph*(d.n-d.ok)/max, rr=Math.min(4,w/2);
+        if(hOk>0) bars+='<rect class="ok" x="'+x+'" y="'+(t+ph-hOk)+'" width="'+w+'" height="'+hOk+'"'+(hBad>0?'':' rx="'+rr+'"')+'/>';
+        if(hBad>0) bars+='<rect class="bad" x="'+x+'" y="'+(t+ph-hOk-hBad)+'" width="'+w+'" height="'+Math.max(0,hBad-(hOk>0?2:0))+'" rx="'+Math.min(rr,hBad/2)+'"/>';
+        if(d.est&&bw>=14) bars+='<text x="'+cx+'" y="'+(t+ph-hOk-hBad-4)+'" text-anchor="middle" style="font-size:9px">估</text>'; }
+      hits+='<rect class="hit" data-k="'+k+'" data-cx="'+cx+'" x="'+(l+bw*i)+'" y="'+t+'" width="'+bw+'" height="'+ph+'"/><rect class="hl" x="'+(l+bw*i)+'" y="'+t+'" width="'+bw+'" height="'+ph+'" opacity="0" style="fill-opacity:.06"/>';
+    });
+    var cN=document.getElementById('cN'); cN.setAttribute('data-vw',W);
+    cN.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="每日作答次数柱状图">'+g+bars+D.map(function(_,i){return lab(i);}).join('')+hits+'</svg>';
+    bindTip(cN);
+    /* 正确率折线：只连有做题的日子 */
+    var H2=150, ph2=H2-t-b, yA=function(a){return t+ph2-ph2*a;}, pts=[];
+    D.forEach(function(k,i){var d=L[k]; if(d&&d.n) pts.push([l+bw*i+bw/2,yA(d.ok/d.n),k]);});
+    var g2='<g class="grid">'; [0,.5,1].forEach(function(f){var y=yA(f);g2+='<line x1="'+l+'" x2="'+(W-r)+'" y1="'+y+'" y2="'+y+'"/><text x="'+(l-6)+'" y="'+(y+4)+'" text-anchor="end">'+Math.round(f*100)+'%</text>';}); g2+='</g>';
+    var ln=pts.length>1?'<polyline class="ln" points="'+pts.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' ')+'"/>':'';
+    var dots=pts.map(function(p){return '<circle class="dot" cx="'+p[0]+'" cy="'+p[1]+'" r="4"/>';}).join('');
+    var hits2=D.map(function(k,i){return '<rect class="hit" data-k="'+k+'" data-cx="'+(l+bw*i+bw/2)+'" x="'+(l+bw*i)+'" y="'+t+'" width="'+bw+'" height="'+ph2+'"/><rect class="hl" x="'+(l+bw*i)+'" y="'+t+'" width="'+bw+'" height="'+ph2+'" style="fill-opacity:.06"/>';}).join('');
+    var cA=document.getElementById('cA'); cA.setAttribute('data-vw',W);
+    cA.innerHTML='<svg viewBox="0 0 '+W+' '+H2+'" role="img" aria-label="每日正确率折线图"><line class="ref" x1="'+l+'" x2="'+(W-r)+'" y1="'+yA(.7)+'" y2="'+yA(.7)+'"/>'+g2+ln+dots+D.map(function(_,i){return lab(i).replace('y="'+(H-6)+'"','y="'+(H2-6)+'"');}).join('')+hits2+'</svg>';
+    bindTip(cA);
+    var rows=D.slice().reverse().filter(function(k){return L[k]&&L[k].n;});
+    document.getElementById('dtb').innerHTML='<tr><th>日期</th><th>作答</th><th>对</th><th>错</th><th>正确率</th><th>科目</th></tr>'+(rows.length?rows.map(function(k){var d=L[k];
+      return '<tr><td>'+k+(d.est?'（估）':'')+'</td><td>'+d.n+'</td><td>'+d.ok+'</td><td>'+(d.n-d.ok)+'</td><td>'+pct(d)+'</td><td class="l">'+Object.keys(d.p||{}).map(function(p){return (NAME[p]||p)+' '+d.p[p][0];}).join('、')+'</td></tr>';}).join(''):'<tr><td colspan="6">这个范围里还没有刷题记录</td></tr>');
+  }
+  document.querySelectorAll('#rangeSeg button').forEach(function(b){b.onclick=function(){range=+b.getAttribute('data-r');document.querySelectorAll('#rangeSeg button').forEach(function(x){x.classList.toggle('on',x===b);});draw();};});
+  if(PolUI.seg) PolUI.seg(document.getElementById('rangeSeg'));
+  draw(); var rt; window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(draw,150);});
 })();
 </script>
 </body>

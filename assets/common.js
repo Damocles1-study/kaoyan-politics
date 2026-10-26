@@ -25,7 +25,27 @@
     if (window.ResizeObserver) new ResizeObserver(function(){ place(false); }).observe(el);
     else window.addEventListener('resize', function(){ place(false); });
   }
-  window.PolUI = { seg: seg };
+  /* 每日刷题流水：pol_daily_v1 = {'2026-10-26': {n 作答次数, ok 答对次数, p:{科: [n, ok]}}}。
+   * 刷题页 / 答题卡每判一题记一笔（同一题一天做两遍记两次），统计页据此画趋势图。 */
+  function dayKey(ts){ var d = new Date(ts || Date.now()); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+  /* 这套流水 10/26 才开始记：第一次读的时候，用刷题记录里每题「最后一次作答」的日期补出今天以前的日子（标 est，图上注明是估算） */
+  function dailyLog(){
+    var L = load('pol_daily_v1', null);
+    if (L) return L;
+    L = {}; var rec = load('pol_rec_v1', {}), today = dayKey();
+    Object.keys(rec).forEach(function(id){ var r = rec[id]; if (!r || !r.ts) return;
+      var k = dayKey(r.ts); if (k >= today) return;
+      var d = L[k] || (L[k] = {n:0, ok:0, p:{}, est:1}), p = id.split('-')[0], a = d.p[p] || (d.p[p] = [0, 0]);
+      d.n++; a[0]++; if (r.ok){ d.ok++; a[1]++; } });
+    save('pol_daily_v1', L); return L;
+  }
+  function logDaily(id, ok){
+    var L = dailyLog(), k = dayKey(), d = L[k] || (L[k] = {n:0, ok:0, p:{}}), p = String(id).split('-')[0];
+    d.n++; if (ok) d.ok++;
+    var a = d.p[p] || (d.p[p] = [0, 0]); a[0]++; if (ok) a[1]++;
+    save('pol_daily_v1', L);
+  }
+  window.PolUI = { seg: seg, logDaily: logDaily, dailyLog: dailyLog, dayKey: dayKey };
 
   /* 背诵模式：彩色关键词变成同色「挖空条」，点一下揭开；可按颜色筛选、随机遮一半、逐个揭开 */
   function recite(){

@@ -15,6 +15,9 @@ META={'my':('马克思主义基本原理','马原'),'mz':('毛泽东思想和中
       'xg':('习近平新时代中国特色社会主义思想概论','习概'),'sg':('中国近现代史纲要','史纲'),'sx':('思想道德与法治','思法')}
 OCRFIX=json.load(open('/Users/zyx/Downloads/新威考研-资料/11408相关/政治/复盘中心/_build/notes/ocr_fix.json',encoding='utf-8'))
 OCRFIX.update(json.load(open('/Users/zyx/Downloads/新威考研-资料/11408相关/政治/复盘中心/_build/notes/ocr_fix_static.json',encoding='utf-8')))
+# 逐题文字订正（三方比对后人工确认）与「请对照习题本」标注（修不了 / 原扫描模糊的题）
+TFIX={k:v for k,v in json.load(open(S+'/notes/text_fix.json',encoding='utf-8')).items() if not k.startswith('_')}
+CHK={k:v for k,v in json.load(open(S+'/notes/check_book.json',encoding='utf-8')).items() if not k.startswith('_')}
 OCRFIX=dict(sorted(OCRFIX.items(),key=lambda kv:-len(kv[0])))
 def fix(s):
     if not s: return s
@@ -76,6 +79,14 @@ for q in Q:
     item={'id':qid,'t':q['t'],'ch':q['ch'],'no':q['no'],'page':q['page'],'stem':tail(fix(stem.strip())),'opts':[tail(fix(o.strip())) for o in opts],
           'ans':a['ans'] if a else '', 'src':clean_field(a['src'],0) if a else '','jx':clean_field(a['jx'],0) if a else '',
           'db':clean_field(a['db'],0) if a else '','tag':a['tag'] if a else ''}
+    for f,old,new in TFIX.get(qid,[]):
+        k='ABCD'.find(f) if len(f)==1 else -1
+        src=item['opts'][k] if k>=0 else item[f]
+        if old not in src: print('  TEXTFIX MISS',qid,f,old); continue
+        src=src.replace(old,new,1)
+        if k>=0: item['opts'][k]=src
+        else: item[f]=src
+    if qid in CHK: item['chk']=CHK[qid]
     if qid in MY: item['my']=MY[qid]
     if qid in JJ and JJ[qid]['t']: item['jj']={'p':JJ[qid]['p'],'h':fix(JJ[qid]['h']),'t':fix(JJ[qid]['t'])}
     data[q['part']].append(item)
