@@ -31,6 +31,18 @@
 - `pol_recite_v2`：背诵模式开关与遮哪几种颜色。`pol_cards_v1`：背诵卡记忆（`k`：0 没记住 · 1 模糊 · ≥2 已熟）。`pol_memo_v1`：大题必背清单勾选。`pol_ph16_v1` / `pol_sx14_v1`：十六原理 / 思法十四专题的「✓ 背熟」勾选。
 - 首页顶部的切换条链到英语一复盘中心（`kaoyan-english` 的 Pages），英语首页顶部也链回本站。
 
+## 三个主题（2026-11-01）
+
+每页右上角「🎨 主题」切换，存本机 `pol_skin_v1`（`{skin, hall, turn}`），不影响做题记录。`assets/skin.js` 在 `<head>` 同步执行定主题，样式全在 `assets/skin.css`。
+
+- **日式漫画**（默认）：就是 `style.css` 本身，`skin.css` 不碰它。
+- **手绘笔记** `html[data-skin="notes"]`：方格本、胶带、荧光笔、红蓝笔批注；系统深色时是黑板。字体运行时取霞鹜文楷（jsDelivr）和 Long Cang、Caveat（Google Fonts），取不到退回系统楷体。
+- **艺术画展** `html[data-skin="gallery"]`：分梵高厅 `data-hall="vg"` 和慕夏厅 `data-hall="mu"`。默认首页、题库、秒杀走梵高，讲义、背诵、大题走慕夏，面板里可锁定一个厅、换一幅。宽度 ≥1400px 时两侧墙上挂竖画。系统深色时是夜场。
+
+**新页面**：在 `style.css` 那行下面加 `<link rel="stylesheet" href="…assets/skin.css?v=N">` 和 `<script src="…assets/skin.js?v=N"></script>`；改这两个文件要提 `?v=`。**六色关键词的含义不能变**；页面里新写的硬投影用 `var(--drop)`，新写的深色标签要在 `skin.css` 两个主题各加一条。
+**展品**：`_build/tools/build_skin_art.py` 从维基共享资源取公有领域原作并压成 webp（来源在 `assets/skin/art/CREDITS.md`），中文名和取景焦点写在 `skin.js` 的 `ART` 表；小矢量由 `_build/tools/build_skin_svg.py` 生成。
+**验收**：后台窗格里动画会停在第 0 帧，量几何和截图前先 `document.getAnimations().forEach(a=>a.finish())`，否则会假报横滚、截图发白。
+
 ## 写一章的固定流程（续做照这个来）
 
 1. `python3 _build/tools/dump.py <科> <章>` 通读本章全部选择题（紧凑格式）。
