@@ -29,6 +29,7 @@
 - `pol_daily_v1`：每日刷题流水 `{'2026-10-26': {n 作答次数, ok 答对次数, p:{科: [n, ok]}, est?}}`，由 `common.js` 的 `PolUI.logDaily` 在刷题页 / 答题卡每判一题时记一笔；统计页据此画「每日作答量（对/错堆叠柱）＋ 每日正确率」两张趋势图。上线前的日子第一次读取时按每题最后一次作答日期补出，标 `est`（图上写「估」）。导出 / 导入会连同这份流水一起搬。
 - `pol_pref_v1`：上次的科目 / 题型 / 章节 / 刷法 `fm` / 每组题数 `n` / 是否限时 `timed`。`pol_exam_v1`：模考未交卷的作答草稿（刷新不丢，12 小时过期）。
 - `pol_recite_v2`：背诵模式开关与遮哪几种颜色。`pol_cards_v1`：背诵卡记忆（`k`：0 没记住 · 1 模糊 · ≥2 已熟）。`pol_memo_v1`：大题必背清单勾选。`pol_ph16_v1` / `pol_sx14_v1`：十六原理 / 思法十四专题的「✓ 背熟」勾选。
+- `pol_time_v1`：学习时长 `{'2026-11-01': 秒数}`，`assets/study_time.js` 记（页面在前台且 5 分钟内有操作才计，多标签不重复）。每页顶部显示今日 / 累计，点开看近 14 天；页面放 `<div id="stHome"></div>` 就出完整面板（首页、统计页）。导出 / 导入会一起搬，同一天取较大值。
 - 首页顶部的切换条链到英语一复盘中心（`kaoyan-english` 的 Pages），英语首页顶部也链回本站。
 
 ## 三个主题（2026-11-01）
@@ -37,10 +38,13 @@
 
 - **日式漫画**（默认）：就是 `style.css` 本身，`skin.css` 不碰它。
 - **手绘笔记** `html[data-skin="notes"]`：方格本、胶带、荧光笔、红蓝笔批注；系统深色时是黑板。字体运行时取霞鹜文楷（jsDelivr）和 Long Cang、Caveat（Google Fonts），取不到退回系统楷体。
-- **艺术画展** `html[data-skin="gallery"]`：分梵高厅 `data-hall="vg"` 和慕夏厅 `data-hall="mu"`。默认首页、题库、秒杀走梵高，讲义、背诵、大题走慕夏，面板里可锁定一个厅、换一幅。宽度 ≥1400px 时两侧墙上挂竖画。系统深色时是夜场。
+- **艺术画展** `html[data-skin="gallery"]`：整页站在一幅流动的画里，分星夜厅 `data-hall="vg"`（永远夜色）和金箔厅 `data-hall="mu"`（奶油与金，系统深色时转暗）。默认首页、题库、秒杀走星夜，讲义、背诵、大题走金箔；面板里可锁定展厅、换一幅、在「流动 / 静帧」间切换（存 `still`）。场景在 `assets/gallery.js`，只有进画展才加载：
+  - **画面**（WebGL2）：笔触顺着自身纹理流动、油彩随鼠标受光、星光呼吸、星夜厅水面倒影、金箔厅金箔反光、溶解换画。没有 WebGL2 时退回静态图（`data-gx-static`），减弱动效或静帧时只画一帧；读书不动时降到约 25 帧。
+  - **联动**：滚动推镜并把背景退到焦外；读到新一节镜头换位（停靠点是 `skin.js` 里 `ART` 的 `f`）；左边星图导航；首页悬停模块换背景（`gallery.js` 的 `MOD`）；判题时光线回应；跨页是螺旋仪飞到中央、光圈合拢再打开。
+  - **模块**：没有方框，内容铺在羽化的光晕（`--veil`）上。必背＝题刻 · 潜台词＝竖排旁注 · 陷阱＝缺角铭牌 · 串联＝星线 · 比方＝拱窗 · 秒杀＝星芒 · 背诵框架＝卷轴框 · 首页模块＝错落悬挂的小画 · 选项＝图录条目 · 题号＝星点 · 背诵卡＝塔罗牌。
 
-**新页面**：在 `style.css` 那行下面加 `<link rel="stylesheet" href="…assets/skin.css?v=N">` 和 `<script src="…assets/skin.js?v=N"></script>`；改这两个文件要提 `?v=`。**六色关键词的含义不能变**；页面里新写的硬投影用 `var(--drop)`，新写的深色标签要在 `skin.css` 两个主题各加一条。
-**展品**：`_build/tools/build_skin_art.py` 从维基共享资源取公有领域原作并压成 webp（来源在 `assets/skin/art/CREDITS.md`），中文名和取景焦点写在 `skin.js` 的 `ART` 表；小矢量由 `_build/tools/build_skin_svg.py` 生成。
+**新页面**：在 `style.css` 那行下面加 `<link rel="stylesheet" href="…assets/skin.css?v=N">` 和 `<script src="…assets/skin.js?v=N"></script>`；改这两个文件要提 `?v=`，改 `gallery.js`、`study_time.js` 要提 `skin.js` 里的 `VER`。**六色关键词的含义不能变**；页面里新写的硬投影用 `var(--drop)`，新写的深色标签要在 `skin.css` 两个主题各加一条；夹在 `.wrap` 直接子级的新散件要加进画展的光晕选择器，否则字会直接压在画上。
+**展品**：`_build/tools/build_skin_art.py` 出小图（模块小画、手机背景），`build_skin_hd.py` 出 `art/hd/` 的 1920px 版（WebGL 材质，共约 5.7MB，每页只加载用到的一两张），都是维基共享资源的公有领域原作（来源见 `art/CREDITS.md`）；小矢量由 `build_skin_svg.py` 生成。
 **验收**：后台窗格里动画会停在第 0 帧，量几何和截图前先 `document.getAnimations().forEach(a=>a.finish())`，否则会假报横滚、截图发白。
 
 ## 写一章的固定流程（续做照这个来）

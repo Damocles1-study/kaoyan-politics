@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>刷题统计</title>
 <link rel="stylesheet" href="../assets/style.css?v=sect1">
-<link rel="stylesheet" href="../assets/skin.css?v=1">
-<script src="../assets/skin.js?v=1"></script>
+<link rel="stylesheet" href="../assets/skin.css?v=2">
+<script src="../assets/skin.js?v=2"></script>
 <style>
   table.st td,table.st th{text-align:center;white-space:nowrap}
   table.st td.l{text-align:left;white-space:normal}
@@ -40,6 +40,7 @@
   <header><h1>统计 ／ 错题本</h1><p class="sub">肖秀荣给的达标线：<b>单选 ≥70%</b>、<b>多选 50%–55%</b>。达标就进下一章，不达标先清错题本。</p></header>
   <section class="card"><h2>总览</h2><div class="stats" id="ov"></div>
     <p style="margin-top:12px"><a class="btn pri" href="刷题.html?p=all&t=all&mode=wrong">⚡ 五科错题一起刷</a></p></section>
+  <section class="card"><h2>学习时长</h2><div id="stHome"></div></section>
   <section class="card"><h2>每日刷题趋势</h2><div class="stats" id="dov"></div>
     <div class="trend-head"><div class="seg" id="rangeSeg"><button data-r="14">近 14 天</button><button data-r="30" class="on">近 30 天</button><button data-r="0">全部</button></div>
       <div class="legend"><span><i style="background:var(--green)"></i>答对</span><span><i style="background:var(--red)"></i>答错</span></div></div>
@@ -86,10 +87,10 @@
     +'<div class="stat"><div class="v">'+(b.acc==null?'—':b.acc+'%')+'</div><div class="k">多选正确率</div></div>'
     +'<div class="stat"><div class="v">'+W+'</div><div class="k">错题本</div></div>';
   var box=document.getElementById('box'), msg=document.getElementById('msg');
-  document.getElementById('exp').onclick=function(){ box.value=JSON.stringify({rec:rec,daily:PolUI.dailyLog()}); box.select(); msg.textContent='已导出 '+Object.keys(rec).length+' 条记录，复制下面的文本到另一台设备。'; };
+  document.getElementById('exp').onclick=function(){ box.value=JSON.stringify({rec:rec,daily:PolUI.dailyLog(),time:window.PolTime?PolTime.log():{}}); box.select(); msg.textContent='已导出 '+Object.keys(rec).length+' 条记录，复制下面的文本到另一台设备。'; };
   document.getElementById('imp').onclick=function(){
     try{ var x=JSON.parse(box.value), n=0;
-      if(x&&x.rec){ var dl=PolUI.dailyLog(); Object.keys(x.daily||{}).forEach(function(k){ if(!dl[k]||(x.daily[k].n||0)>(dl[k].n||0)) dl[k]=x.daily[k]; }); localStorage.setItem('pol_daily_v1',JSON.stringify(dl)); x=x.rec; } Object.keys(x).forEach(function(k){ if(!rec[k]||(x[k].n||0)>(rec[k].n||0)){rec[k]=x[k];n++;} });
+      if(x&&x.rec){ if(x.time&&window.PolTime) PolTime.merge(x.time); var dl=PolUI.dailyLog(); Object.keys(x.daily||{}).forEach(function(k){ if(!dl[k]||(x.daily[k].n||0)>(dl[k].n||0)) dl[k]=x.daily[k]; }); localStorage.setItem('pol_daily_v1',JSON.stringify(dl)); x=x.rec; } Object.keys(x).forEach(function(k){ if(!rec[k]||(x[k].n||0)>(rec[k].n||0)){rec[k]=x[k];n++;} });
       localStorage.setItem(KEY,JSON.stringify(rec)); msg.textContent='导入完成，更新了 '+n+' 条。刷新页面查看。'; }
     catch(e){ msg.textContent='导入失败：文本不是有效的导出记录。'; }
   };
