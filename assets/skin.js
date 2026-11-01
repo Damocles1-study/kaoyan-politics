@@ -2,12 +2,14 @@
  * 三个主题：manga 日式漫画（默认，就是 style.css 本身）· notes 手绘学习笔记 · gallery 艺术画展
  * html[data-skin] 决定主题；画展再加 html[data-hall]：vg 星夜厅 / mu 金箔厅。样式全在 skin.css，
  * 画展的场景（WebGL 画面、螺旋仪、联动）在 gallery.js，只有进画展才加载。
- * 存在本机：pol_skin_v1 = {skin, hall:'auto'|'vg'|'mu', turn:换了几幅, still:静帧}。
+ * 存在本机：pol_skin_v1 = {skin, hall:'auto'|'vg'|'mu', turn:换了几幅, still:静帧, tint:{manga:0-100, notes:0-100}}。
+ * 背景色调 tint：0 就是样式表原样；大于 0 时按 TINT 表把纸面变量往暖黄方向插值，写在 html 的行内样式上，文字和六色同步压深保住对比度。
+ * 右下角浮钮打开「阅读面板」：目录 · 主题 · 背景色 · 学习时长，读到哪都能点。
  * 学习时长 study_time.js 也由这里带进每一页。 */
 (function(){
   var KEY = 'pol_skin_v1', root = document.documentElement;
   var me = document.currentScript, BASE = me ? me.src.replace(/[^\/]*$/, '') : 'assets/';
-  var VER = '2';
+  var VER = '3';
   var SKINS = [
     {id:'manga',   name:'日式漫画', desc:'墨线分格 · 网点 · 红笔判卷'},
     {id:'notes',   name:'手绘笔记', desc:'方格本 · 胶带 · 荧光笔手写'},
@@ -41,10 +43,38 @@
     gallery: ['https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500;1,700&family=Noto+Serif+SC:wght@400;700;900&display=swap']
   };
 
+  /* 背景色调的终点（滑到 100 时的值），起点从样式表读 */
+  var TINT = {
+    manga: {
+      light: {'--paper':'#f1e3b8','--card':'#f9eecb','--card-solid':'#f9eecb','--bg':'#ecdcae','--bg2':'#dfcd98',
+        '--ink2':'#33302a','--muted':'#5c564a',
+        '--accent-soft':'#f8d4c0','--green':'#126a30','--green-soft':'#d6e8bc','--blue':'#164f9f','--blue-soft':'#d5e0dc',
+        '--purple':'#6c30a6','--purple-soft':'#e8d6dc','--red':'#b81e14','--red-soft':'#f8d2c0',
+        '--gold':'#6f4c00','--gold-soft':'#f6d98a','--orange':'#a84400','--orange-soft':'#f8d6a8',
+        '--k-w':'#b01f14','--k-d':'#164f96','--k-t':'#7030a6','--k-m':'#106a38','--k-x':'#a84400','--k-n-bg':'#ffd24f'},
+      dark: {'--paper':'#241c0d','--card':'#2e2514','--card-solid':'#2e2514','--bg':'#382e1a','--bg2':'#443822'}
+    },
+    notes: {
+      light: {'--paper':'#efe1b4','--card':'#f8edc8','--card-solid':'#f8edc8','--bg':'#eadbab','--bg2':'#decd99',
+        '--ink2':'#3d3f45','--muted':'#55544d',
+        '--accent-soft':'#f8d6c4','--green':'#0f6740','--green-soft':'#d8e8bc','--blue':'#1b5192','--blue-soft':'#d6e2da',
+        '--purple':'#62309f','--purple-soft':'#e8d8dc','--red':'#a32419','--red-soft':'#f8d4c4',
+        '--gold':'#6f4f00','--gold-soft':'#f6da8c','--orange':'#933e00','--orange-soft':'#f8d8ac',
+        '--k-w':'#a32419','--k-d':'#1a5092','--k-t':'#642ea0','--k-m':'#0f6740','--k-x':'#933e00','--k-n-bg':'#ffd24f','--mk1':'#ffd64a'},
+      dark: {'--paper':'#2c2b1b','--card':'#353422','--card-solid':'#353422','--bg':'#3d3c28','--bg2':'#48462f'}
+    }
+  };
+  var TINT_STOPS = [{t:0, n:'标准'}, {t:30, n:'米黄'}, {t:60, n:'杏黄'}, {t:100, n:'羊皮'}];
+
   function load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
   var st = load();
   if (!SKINS.some(function(s){ return s.id === st.skin; })) st.skin = 'manga';
-  st.hall = st.hall || 'auto'; st.turn = st.turn || 0; st.still = !!st.still;
+  st.hall = st.hall || 'auto'; st.turn = st.turn || 0; st.still = !!st.still; st.tint = cleanTint(st.tint);
+  function cleanTint(o){
+    var r = {manga:0, notes:0}; o = o || {};
+    ['manga','notes'].forEach(function(k){ var v = +o[k]; if (v > 0) r[k] = Math.min(100, Math.round(v)); });
+    return r;
+  }
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e){} }
 
   /* 自动选厅：做题、首页走星夜（有劲），讲义、背诵走金箔（安静）；翻页时像走进另一个展厅 */
@@ -64,8 +94,45 @@
       var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = u; l.crossOrigin = 'anonymous'; document.head.appendChild(l);
     });
   }
+  /* 背景色调 */
+  var tintVars = {}, tintBase = {};
+  Object.keys(TINT).forEach(function(s){ ['light','dark'].forEach(function(m){ Object.keys(TINT[s][m]).forEach(function(v){ tintVars[v] = 1; }); }); });
+  function isDark(){
+    var t = root.getAttribute('data-theme');
+    return t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  function clearTint(){ Object.keys(tintVars).forEach(function(v){ root.style.removeProperty(v); }); }
+  function rgb(h){
+    h = h.replace('#', ''); if (h.length === 3) h = h.replace(/./g, '$&$&');
+    return [0, 2, 4].map(function(i){ return parseInt(h.substr(i, 2), 16); });
+  }
+  function mix(a, b, t){
+    var x = rgb(a), y = rgb(b);
+    return '#' + x.map(function(c, i){ var v = Math.round(c + (y[i] - c) * t).toString(16); return v.length < 2 ? '0' + v : v; }).join('');
+  }
+  function tintEnds(){ return TINT[st.skin] ? TINT[st.skin][isDark() ? 'dark' : 'light'] : null; }
+  /* 起点从样式表读：先清掉行内值再读，读过的按「主题＋深浅」记住，拖滑杆时不用反复重算样式 */
+  function baseOf(){
+    var key = st.skin + (isDark() ? '-d' : '-l');
+    if (tintBase[key]) return tintBase[key];
+    clearTint();
+    var cs = getComputedStyle(root), b = {};
+    Object.keys(tintEnds()).forEach(function(v){ b[v] = cs.getPropertyValue(v).trim(); });
+    if (/^#/.test(b['--paper'])) tintBase[key] = b;
+    return b;
+  }
+  function paintTint(){
+    var t = st.tint[st.skin] || 0, ends = tintEnds();
+    if (!t || !ends){ clearTint(); return; }
+    var b = baseOf();
+    Object.keys(tintVars).forEach(function(v){
+      if (ends[v] && /^#[0-9a-f]{3,6}$/i.test(b[v])) root.style.setProperty(v, mix(b[v], ends[v], t / 100));
+      else root.style.removeProperty(v);
+    });
+  }
   /* 定主题：只动 html 上的属性和变量，所以切换不用刷新、也不影响做题状态 */
-  function paint(){
+  function paint(){ paintSkin(); paintTint(); }
+  function paintSkin(){
     if (st.skin === 'manga'){ root.removeAttribute('data-skin'); root.removeAttribute('data-hall'); root.removeAttribute('data-gx-still'); root.style.removeProperty('--art'); return; }
     root.setAttribute('data-skin', st.skin);
     fonts(st.skin);
@@ -124,7 +191,7 @@
       var hd = document.querySelector('.wrap header');
       if (hd){ var d = document.createElement('i'); d.className = 'skin-doodle'; d.setAttribute('aria-hidden', 'true'); hd.appendChild(d); }
     }
-    var tc = {manga:'#e2231a', notes:'#f7f4ea', gallery: hallNow() === 'vg' ? '#0a1026' : '#f6eeda'}[st.skin];
+    var tc = {manga:'#e2231a', notes:root.style.getPropertyValue('--paper') || '#f7f4ea', gallery: hallNow() === 'vg' ? '#0a1026' : '#f6eeda'}[st.skin];
     var m = document.querySelector('meta[name="theme-color"]');
     if (m) m.content = tc;
     syncGallery();
@@ -140,8 +207,9 @@
     paint(); decorate();
   }
 
-  /* 切换面板 */
-  var chip, panel;
+  /* 阅读面板：右下角浮钮常驻，顶部「主题」钮打开的也是它 */
+  var chip, panel, fab, opener, tocLinks = [], tintTimer;
+  function esc2(s){ return esc(s).replace(/"/g, '&quot;'); }
   function syncPanel(){
     if (!panel) return;
     panel.querySelectorAll('[data-s]').forEach(function(b){
@@ -150,6 +218,75 @@
     panel.querySelectorAll('[data-h]').forEach(function(b){ b.classList.toggle('on', b.dataset.h === st.hall); });
     panel.querySelectorAll('[data-m]').forEach(function(b){ b.classList.toggle('on', (b.dataset.m === 'still') === st.still); });
     panel.querySelector('.skin-hall').hidden = st.skin !== 'gallery';
+    var box = panel.querySelector('.dock-tint'), ends = tintEnds();
+    box.hidden = !ends;
+    if (ends) syncTint(box, ends);
+  }
+  function syncTint(box, ends){
+    var t = st.tint[st.skin] || 0, r = box.querySelector('input'), stop = TINT_STOPS.filter(function(x){ return x.t === t; })[0];
+    r.value = t;
+    r.setAttribute('aria-valuetext', stop ? stop.n : t + '%');
+    r.style.setProperty('--a', baseOf0(ends));
+    r.style.setProperty('--b', ends['--paper']);
+    box.querySelector('.dock-val').textContent = stop ? stop.n + (t ? '' : '（默认）') : '偏黄 ' + t + '%';
+    box.querySelectorAll('[data-t]').forEach(function(b){ b.classList.toggle('on', +b.dataset.t === t); });
+  }
+  /* 滑杆的起点色：有缓存直接用，没缓存时读一次（只在面板打开时发生） */
+  function baseOf0(ends){
+    var b = tintBase[st.skin + (isDark() ? '-d' : '-l')];
+    if (!b){ b = baseOf(); paintTint(); }
+    return b['--paper'] || ends['--paper'];
+  }
+  function setTint(v){
+    st.tint[st.skin] = Math.max(0, Math.min(100, Math.round(v)));
+    paintTint();
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m && st.skin === 'notes') m.content = root.style.getPropertyValue('--paper') || '#f7f4ea';
+    syncPanel();
+    clearTimeout(tintTimer); tintTimer = setTimeout(save, 200);
+  }
+  function sections(){
+    return [].slice.call(document.querySelectorAll('section.card[id]')).filter(function(s){ return s.querySelector('h2'); });
+  }
+  function fillToc(){
+    var box = panel.querySelector('.dock-toc'), secs = sections();
+    box.hidden = secs.length < 4;
+    if (box.hidden){ tocLinks = []; return; }
+    box.innerHTML = '<div class="dock-h">目录</div>' + secs.map(function(s){
+      var h = s.querySelector('h2'), no = h.querySelector('.no'), all = h.textContent.trim();
+      var txt = no ? all.slice(no.textContent.length).trim() : all;
+      return '<a href="#' + esc2(s.id) + '">' + (no ? '<i>' + esc(no.textContent) + '</i>' : '') + esc(txt) + '</a>';
+    }).join('');
+    tocLinks = [].slice.call(box.querySelectorAll('a')).map(function(a, i){ return {a:a, s:secs[i]}; });
+  }
+  /* 读到哪一节就亮哪一节，并把它滚进目录的可视范围 */
+  function markToc(){
+    if (!tocLinks.length || panel.hidden) return;
+    var line = innerHeight * .35, cur = tocLinks[0];
+    tocLinks.forEach(function(x){ if (x.s.getBoundingClientRect().top <= line) cur = x; });
+    tocLinks.forEach(function(x){ x.a.classList.toggle('on', x === cur); });
+    var box = panel.querySelector('.dock-toc'), a = cur.a;
+    if (a.offsetTop < box.scrollTop || a.offsetTop + a.offsetHeight > box.scrollTop + box.clientHeight)
+      box.scrollTop = a.offsetTop - box.clientHeight / 2;
+  }
+  function fillTime(){
+    var box = panel.querySelector('.dock-time'), T = window.PolTime;
+    box.hidden = !T; if (!T) return;
+    var s = T.stats();
+    box.querySelector('summary').innerHTML = '<span>今日 <b>' + T.fmt(s.today) + '</b></span><span>累计 <b>' + T.fmt(s.total) + '</b></span><span>连续 <b>' + s.streak + ' 天</b></span>';
+    var d = box.querySelector('details');
+    if (d.open && !d.querySelector('u:hover,u:focus')) box.querySelector('.dock-tm').innerHTML = T.panel();
+  }
+  function place(){
+    var r = fab.getBoundingClientRect(), gap = 10, bottom = innerHeight - r.top + gap;
+    panel.style.bottom = bottom + 'px';
+    panel.style.maxHeight = (innerHeight - bottom - 10) + 'px';
+  }
+  function toggle(open, from){
+    panel.hidden = !open;
+    fab.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (chip) chip.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open){ opener = from; fillToc(); fillTime(); syncPanel(); place(); markToc(); }
   }
   function build(){
     chip = document.createElement('button'); chip.type = 'button'; chip.className = 'skin-chip';
@@ -159,44 +296,66 @@
     if (host) host.appendChild(chip); else { chip.classList.add('solo'); document.body.appendChild(chip); }
 
     panel = document.createElement('div'); panel.className = 'skin-panel'; panel.hidden = true;
-    panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-label', '切换主题');
-    panel.innerHTML = '<div class="skin-ttl">换一个主题 <span>只改样子，做题记录不受影响</span></div>'
-      + '<div class="skin-opts" role="radiogroup">' + SKINS.map(function(s){
-          return '<button type="button" role="radio" data-s="' + s.id + '"><i class="skin-thumb t-' + s.id + '"' + (s.id === 'gallery' ? ' style="background-image:url(&quot;' + BASE + 'skin/art/starry.webp&quot;)"' : '') + '></i><b>' + s.name + '</b><small>' + s.desc + '</small></button>';
+    panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-label', '阅读面板：目录、主题、背景色、学习时长');
+    panel.innerHTML = '<div class="dock-time" hidden><details><summary></summary><div class="dock-tm"></div></details></div>'
+      + '<nav class="dock-toc" aria-label="本页目录" hidden></nav>'
+      + '<div class="dock-look">'
+      + '<div class="dock-tint" hidden><div class="dock-h">背景色 <span class="dock-val"></span></div>'
+      + '<input type="range" min="0" max="100" step="1" aria-label="背景偏黄程度">'
+      + '<div class="dock-stops">' + TINT_STOPS.map(function(x){ return '<button type="button" data-t="' + x.t + '">' + x.n + '</button>'; }).join('') + '</div></div>'
+      + '<div class="skin-opts" role="radiogroup" aria-label="主题">' + SKINS.map(function(s){
+          return '<button type="button" role="radio" data-s="' + s.id + '" title="' + s.desc + '"><i class="skin-thumb t-' + s.id + '"' + (s.id === 'gallery' ? ' style="background-image:url(&quot;' + BASE + 'skin/art/starry.webp&quot;)"' : '') + '></i><b>' + s.name + '</b></button>';
         }).join('') + '</div>'
       + '<div class="skin-hall" hidden><span>展厅</span><button type="button" data-h="auto">自动</button><button type="button" data-h="vg">星夜</button><button type="button" data-h="mu">金箔</button><button type="button" class="skin-next">换一幅</button>'
-      + '<span class="skin-brk">画面</span><button type="button" data-m="flow">流动</button><button type="button" data-m="still">静帧</button></div>';
+      + '<span class="skin-brk">画面</span><button type="button" data-m="flow">流动</button><button type="button" data-m="still">静帧</button></div>'
+      + '<p class="dock-note">只改样子，做题记录不受影响</p></div>';
     document.body.appendChild(panel);
 
-    function toggle(open){
-      panel.hidden = !open; chip.setAttribute('aria-expanded', open ? 'true' : 'false');
-      if (open){
-        var r = chip.getBoundingClientRect(), w = panel.offsetWidth;
-        panel.style.top = Math.max(8, r.bottom + 8) + 'px';
-        panel.style.left = Math.max(10, Math.min(innerWidth - w - 10, r.right - w)) + 'px';
-      }
-    }
-    chip.onclick = function(e){ e.stopPropagation(); toggle(panel.hidden); };
+    /* 有目录的页是「☰ 目录」，没有目录的页（刷题、答题卡）缩成不挡内容的小钮 */
+    var hasToc = sections().length >= 4;
+    fab = document.createElement('button'); fab.type = 'button'; fab.className = 'fab' + (hasToc ? '' : ' mini');
+    fab.setAttribute('aria-haspopup', 'dialog'); fab.setAttribute('aria-expanded', 'false');
+    fab.setAttribute('aria-label', hasToc ? '目录、主题、背景色' : '主题、背景色');
+    fab.title = hasToc ? '目录 · 主题 · 背景色 · 学习时长' : '主题 · 背景色 · 学习时长';
+    fab.textContent = hasToc ? '☰ 目录' : '🎨';
+    document.body.appendChild(fab);
+
+    chip.onclick = function(e){ e.stopPropagation(); toggle(panel.hidden, chip); };
+    fab.onclick = function(e){ e.stopPropagation(); toggle(panel.hidden, fab); };
     panel.addEventListener('click', function(e){
+      if (e.target.closest('.dock-toc a')){ toggle(false); return; }
       var b = e.target.closest('button'); if (!b) return;
       if (b.dataset.s) apply(function(){ st.skin = b.dataset.s; });
+      else if (b.dataset.t != null) setTint(+b.dataset.t);
       else if (b.dataset.h) apply(function(){ st.hall = b.dataset.h; });
       else if (b.dataset.m){ st.still = b.dataset.m === 'still'; paint(); syncPanel(); save(); if (gallery) gallery.motion(); }
       else if (b.classList.contains('skin-next')) turn();
     });
-    document.addEventListener('click', function(e){ if (!panel.hidden && !e.target.closest('.skin-panel,.skin-chip')) toggle(false); });
-    document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !panel.hidden){ toggle(false); chip.focus(); } });
-    window.addEventListener('scroll', function(){ if (!panel.hidden) toggle(false); }, {passive:true});
+    panel.querySelector('.dock-tint input').addEventListener('input', function(e){ setTint(+e.target.value); });
+    panel.querySelector('.dock-time details').addEventListener('toggle', function(){ fillTime(); });
+    document.addEventListener('click', function(e){ if (!panel.hidden && !e.target.closest('.skin-panel,.skin-chip,.fab')) toggle(false); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !panel.hidden){ toggle(false); if (opener) opener.focus(); } });
+    /* 面板开着可以继续滚动：边读边调背景，目录跟着亮 */
+    var ticking = false;
+    window.addEventListener('scroll', function(){
+      if (panel.hidden || ticking) return; ticking = true;
+      requestAnimationFrame(function(){ ticking = false; markToc(); });
+    }, {passive:true});
+    window.addEventListener('resize', function(){ if (!panel.hidden) place(); });
+    setInterval(function(){ if (!panel.hidden) fillTime(); }, 5000);
+    /* 背诵模式的工具条会把浮钮顶上去，面板要跟着 */
+    new MutationObserver(function(){ if (!panel.hidden) setTimeout(place, 320); }).observe(document.body, {attributes:true, attributeFilter:['class']});
     syncPanel();
   }
   function ready(){
     build(); decorate();
     var t = document.createElement('script'); t.src = BASE + 'study_time.js?v=' + VER; document.head.appendChild(t);
   }
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ paintTint(); syncPanel(); });
   if (document.readyState !== 'loading') ready(); else document.addEventListener('DOMContentLoaded', ready);
   window.addEventListener('storage', function(e){
     if (e.key !== KEY) return;
-    var n = load(); st.skin = n.skin || 'manga'; st.hall = n.hall || 'auto'; st.turn = n.turn || 0; st.still = !!n.still;
+    var n = load(); st.skin = n.skin || 'manga'; st.hall = n.hall || 'auto'; st.turn = n.turn || 0; st.still = !!n.still; st.tint = cleanTint(n.tint);
     paint(); decorate(); syncPanel();
   });
 })();

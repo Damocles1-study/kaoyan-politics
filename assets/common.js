@@ -134,17 +134,7 @@
     // 2) 背诵模式（有图例的页才开放）
     if (lg) { var tog = recite(); var rb = document.getElementById('reciteBtn'); if (tog) rb.onclick = tog; else rb.remove(); }
 
-    // 3) 目录浮钮（有 ≥4 个带 id 的卡片时出现）
-    var secs = [].slice.call(document.querySelectorAll('section.card[id]'));
-    if (secs.length >= 4) {
-      var b = document.createElement('button'); b.className = 'fab'; b.textContent = '☰ 目录';
-      var pop = document.createElement('div'); pop.className = 'tocpop'; pop.hidden = true;
-      pop.innerHTML = secs.map(function(s){ var h = s.querySelector('h2'); return h ? '<a href="#'+s.id+'">'+h.textContent+'</a>' : ''; }).join('');
-      document.body.appendChild(pop); document.body.appendChild(b);
-      b.onclick = function(){ pop.hidden = !pop.hidden; };
-      pop.onclick = function(e){ if (e.target.tagName === 'A') pop.hidden = true; };
-      document.addEventListener('click', function(e){ if (!pop.hidden && !e.target.closest('.tocpop,.fab')) pop.hidden = true; });
-    }
+    // 3) 目录并进了 skin.js 的阅读面板（右下角浮钮：目录 · 主题 · 背景色 · 学习时长）
 
     // 4) 分段控件
     document.querySelectorAll('.seg').forEach(seg);

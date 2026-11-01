@@ -90,7 +90,7 @@
   });
   document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible') input = Date.now(); tick(); });
   window.addEventListener('pagehide', tick);
-  window.PolTime = {stats:stats, fmt:fmt, tick:tick, log:load,
+  window.PolTime = {stats:stats, fmt:fmt, tick:tick, log:load, panel:panel,
     /* 导入：同一天取较大值，重复导入不会翻倍 */
     merge:function(m){ var o = load(); Object.keys(m || {}).forEach(function(k){ if (!(o[k] >= m[k])) o[k] = m[k]; }); save(o); draw(); }};
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
