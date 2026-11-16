@@ -9,7 +9,9 @@ JOBS=[('27肖1000试题.pdf','1000题_试题分册.pdf','text'),
       ('27肖秀荣《精讲精练》.pdf','精讲精练.pdf','text'),
       ('政治近3年试卷.pdf','近3年真题试卷.pdf','pixqr'),
       ('讲真题-试卷分册.pdf','讲真题_试卷分册.pdf','pixqr'),
-      ('讲真题-试卷解析.pdf','讲真题_解析分册.pdf','pixqr')]
+      ('讲真题-试卷解析.pdf','讲真题_解析分册.pdf','pixqr'),
+      ('27肖秀荣《八套卷》【试题册】.pdf','八套卷_试题册.pdf','fxwm'),
+      ('27肖秀荣《八套卷》【解析册】.pdf','八套卷_解析册.pdf','fxwm')]
 only=sys.argv[1:]
 def strip_visible_text(page):
     rects=[fitz.Rect(t['bbox']) for t in page.get_texttrace() if t['type']==0]
@@ -17,6 +19,18 @@ def strip_visible_text(page):
     for r in rects: page.add_redact_annot(r, fill=False)
     page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE, graphics=fitz.PDF_REDACT_LINE_ART_NONE)
     return len(rects)
+import re
+def strip_fxwm(d,page):
+    # 扫描王导出：每页 = 一张整页扫描图 + Watermark Artifact（页眉公众号文字）+ 个别页一张二维码小图。只留整页扫描图那一笔。
+    c=page.read_contents().decode('latin1')
+    big=[x['xref'] for x in page.get_image_info(xrefs=True) if x['bbox'][2]-x['bbox'][0]>300]
+    m=re.match(r'(q\n[^\n]*\n/FXE\d+ gs q [^Q]*?/FXX\d+ Do  Q\n)',c)
+    if not m or len(big)!=1: return 0
+    new=m.group(1)+'Q\n'
+    xr=page.get_contents()
+    d.update_stream(xr[0],new.encode('latin1'))
+    for x in xr[1:]: d.update_stream(x,b'')
+    return 1+c.count('/FXX')-2
 def find_qr(a):
     H,W=a.shape
     y0=H-165; x0=W-140
@@ -31,7 +45,7 @@ def find_qr(a):
 log=open(DST+'/_清洗日志.txt','a')
 for src,dst,mode in JOBS:
     if only and dst not in only: continue
-    t=time.time(); d=fitz.open(SRC+'/'+src); nt=0; nq=0; miss=[]
+    t=time.time(); d=fitz.open(SRC+'/'+src if os.path.exists(SRC+'/'+src) else SRC+'/_原始PDF/'+src); nt=0; nq=0; miss=[]
     if 'qr' in mode and mode!='pixqr':
         xr=None
         for p in d:
@@ -40,6 +54,11 @@ for src,dst,mode in JOBS:
             if xr: break
         nq=1 if xr else 0
     for i,p in enumerate(d):
+        if mode=='fxwm':
+            k=strip_fxwm(d,p)
+            if not k: miss.append(i)
+            else: nt+=1; nq+=k-1
+            continue
         if 'text' in mode: nt+=strip_visible_text(p)
         if mode=='pixqr':
             x=p.get_images(full=True)[0]
@@ -57,6 +76,6 @@ for src,dst,mode in JOBS:
             bio=io.BytesIO(); Image.fromarray(arr).save(bio,'JPEG',quality=88,optimize=True)
             p.replace_image(x[0],stream=bio.getvalue()); nq+=1
     d.set_metadata({'title':dst[:-4],'author':'','subject':'','keywords':'','creator':'','producer':''})
-    d.save(DST+'/'+dst,garbage=3,deflate=True)
+    d.save(DST+'/'+dst,garbage=3,deflate=True,encryption=fitz.PDF_ENCRYPT_NONE)
     msg=f'{dst}: pages={d.page_count} text_spans_removed={nt} qr_removed={nq} qr_miss={miss} {time.time()-t:.0f}s'
     print(msg); log.write(msg+'\n'); log.flush()

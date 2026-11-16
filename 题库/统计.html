@@ -51,7 +51,7 @@
   <section class="card"><h2>按科目 · 按章</h2><div class="gridwrap"><table class="st" id="tb"></table></div>
     <p class="note">「错题」＝做错过、且还没有连续做对 2 次的题。点数字直接进该章错题本。</p></section>
   <section class="card"><h2>换设备：导出 / 导入记录</h2>
-    <p class="lead">刷题记录只存在当前浏览器。要从电脑搬到手机（或反过来）：在旧设备点「导出」→ 复制文本 → 新设备粘贴后点「导入」（会与现有记录合并，取做题次数多的那条）。</p>
+    <p class="lead">刷题记录（含整卷模考的成绩、作答和自估分）只存在当前浏览器。要从电脑搬到手机（或反过来）：在旧设备点「导出」→ 复制文本 → 新设备粘贴后点「导入」（会与现有记录合并，取做题次数多的那条）。</p>
     <p><button class="btn" id="exp">导出</button> <button class="btn" id="imp">导入</button> <button class="btn" id="clr">清空本机记录</button></p>
     <textarea id="box" placeholder="导出的记录会出现在这里；要导入就把文本粘贴到这里"></textarea>
     <p class="note" id="msg"></p></section>
@@ -87,10 +87,21 @@
     +'<div class="stat"><div class="v">'+(b.acc==null?'—':b.acc+'%')+'</div><div class="k">多选正确率</div></div>'
     +'<div class="stat"><div class="v">'+W+'</div><div class="k">错题本</div></div>';
   var box=document.getElementById('box'), msg=document.getElementById('msg');
-  document.getElementById('exp').onclick=function(){ box.value=JSON.stringify({rec:rec,daily:PolUI.dailyLog(),time:window.PolTime?PolTime.log():{}}); box.select(); msg.textContent='已导出 '+Object.keys(rec).length+' 条记录，复制下面的文本到另一台设备。'; };
+  document.getElementById('exp').onclick=function(){ var PK=['pol_paper_v1','pol_paper_rec_v1','pol_paper_essay_v1','pol_paper_ex_v1'], pap={}; PK.forEach(function(k){ try{ pap[k]=JSON.parse(localStorage.getItem(k))||{}; }catch(e){ pap[k]={}; } });
+    box.value=JSON.stringify({rec:rec,daily:PolUI.dailyLog(),time:window.PolTime?PolTime.log():{},paper:pap}); box.select(); msg.textContent='已导出 '+Object.keys(rec).length+' 条记录，复制下面的文本到另一台设备。'; };
   document.getElementById('imp').onclick=function(){
     try{ var x=JSON.parse(box.value), n=0;
-      if(x&&x.rec){ if(x.time&&window.PolTime) PolTime.merge(x.time); var dl=PolUI.dailyLog(); Object.keys(x.daily||{}).forEach(function(k){ if(!dl[k]||(x.daily[k].n||0)>(dl[k].n||0)) dl[k]=x.daily[k]; }); localStorage.setItem('pol_daily_v1',JSON.stringify(dl)); x=x.rec; } Object.keys(x).forEach(function(k){ if(!rec[k]||(x[k].n||0)>(rec[k].n||0)){rec[k]=x[k];n++;} });
+      if(x&&x.rec){ if(x.time&&window.PolTime) PolTime.merge(x.time); var dl=PolUI.dailyLog(); Object.keys(x.daily||{}).forEach(function(k){ if(!dl[k]||(x.daily[k].n||0)>(dl[k].n||0)) dl[k]=x.daily[k]; }); localStorage.setItem('pol_daily_v1',JSON.stringify(dl));
+        /* 套卷记录：成绩台账按卷取次数多的一份，逐题记录取作答次数多的，作答文字和自估分本机没有才补 */
+        if(x.paper){ var gp=function(k){ try{ return JSON.parse(localStorage.getItem(k))||{}; }catch(e){ return {}; } };
+          var L=gp('pol_paper_v1'), R=gp('pol_paper_rec_v1'), E=gp('pol_paper_essay_v1'), X=gp('pol_paper_ex_v1'), p=x.paper;
+          Object.keys(p.pol_paper_v1||{}).forEach(function(k){ if(!L[k]||p.pol_paper_v1[k].length>L[k].length) L[k]=p.pol_paper_v1[k]; });
+          Object.keys(p.pol_paper_rec_v1||{}).forEach(function(k){ if(!R[k]||(p.pol_paper_rec_v1[k].n||0)>(R[k].n||0)) R[k]=p.pol_paper_rec_v1[k]; });
+          Object.keys(p.pol_paper_essay_v1||{}).forEach(function(k){ if(!E[k]) E[k]=p.pol_paper_essay_v1[k]; });
+          Object.keys(p.pol_paper_ex_v1||{}).forEach(function(k){ if(X[k]==null) X[k]=p.pol_paper_ex_v1[k]; });
+          localStorage.setItem('pol_paper_v1',JSON.stringify(L)); localStorage.setItem('pol_paper_rec_v1',JSON.stringify(R));
+          localStorage.setItem('pol_paper_essay_v1',JSON.stringify(E)); localStorage.setItem('pol_paper_ex_v1',JSON.stringify(X)); }
+        x=x.rec; } Object.keys(x).forEach(function(k){ if(!rec[k]||(x[k].n||0)>(rec[k].n||0)){rec[k]=x[k];n++;} });
       localStorage.setItem(KEY,JSON.stringify(rec)); msg.textContent='导入完成，更新了 '+n+' 条。刷新页面查看。'; }
     catch(e){ msg.textContent='导入失败：文本不是有效的导出记录。'; }
   };
