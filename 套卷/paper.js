@@ -30,7 +30,7 @@
   /* 解析着色（与刷题引擎同一套口径，简化版） */
   const HL = /(《[^》\n]{1,32}》)|((?:\d{4}(?:—|-|～|~|至)\d{2,4}|\d{4})年(?:\d{1,2}月)?(?:\d{1,2}日)?)|((?:[A-D](?:\s*[、，,和与及]\s*[A-D])*)\s*项?\s*(?:均)?(?:正确|符合题意|当选|入选|应选))|((?:[A-D](?:\s*[、，,和与及]\s*[A-D])*)\s*项?\s*(?:均)?(?:错误|不正确|不符合题意|不选|排除|说法错误|表述错误))|(本题选\s*[A-D]+|故(?:本题)?(?:正确答案为|选)\s*[A-D]+)|(根本|核心|实质|本质|首要|关键|基础|前提)|(“[^”\n]{2,12}”)|([（(][1-6][)）]|第[一二三四五六]，)/g;
   const CLS = [null,'kt','kt','km','kw','km','kw','kd','kn'];
-  const hl = s => esc(s).replace(HL, (...m) => { for (let i=1;i<CLS.length;i++) if (m[i]) return `<span class="${CLS[i]}">${m[i]}</span>`; return m[0]; }).replace(/\n/g,'<br>');
+  const hl = s => esc(s).replace(/【(名师点拨|点拨)】/g, '\u0001$1\u0002').replace(HL, (...m) => { for (let i=1;i<CLS.length;i++) if (m[i]) return `<span class="${CLS[i]}">${m[i]}</span>`; return m[0]; }).replace(/\n/g,'<br>').replace(/\u0001(.*?)\u0002/g, '<b class="kx">【$1】</b>');
   const NEG = /(不正确|错误的是|不属于|不包括|不符合|不是|并非|不能)/g;
   const stemH = s => fmt(s).replace(NEG, '<span class="neg">$1</span>');
 
@@ -101,8 +101,9 @@
       `<div class="stem">${stemH(q.stem)}</div>` + optsHTML(q);
     if (show){
       h += verdict(q);
-      if (q.jx) h += `<div class="jx"><div class="eh">📕 解析</div>${hl(q.jx)}</div>`;
-      if (q.pg) h += `<div class="src">${esc(p.src||'')} P${q.pg}</div>`;
+      if (q.jx) h += `<div class="jx"><div class="eh">📕 解析${q.jxsrc ? ' · 肖《讲真题》' : ''}</div>${hl(q.jx)}</div>`;
+      else if (p.kind === 'zt') h += `<div class="src">《讲真题》没收这道题的解析（时政题，或提法已变的旧考点）。</div>`;
+      if (q.pg) h += `<div class="src">题面：${esc(p.src||'')} P${q.pg}${q.jxsrc ? ' · 解析：' + esc(q.jxsrc) : ''}</div>`;
     }
     return h + `</div>`;
   }

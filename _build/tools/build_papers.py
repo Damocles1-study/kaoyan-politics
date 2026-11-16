@@ -20,6 +20,7 @@ def clean(s):
     # 识别时被当成缩进而断开的行：上一行不是句末就并回去
     s = re.sub(r'(?<![。！？”：；）)])\n(?![（(][1-6一二三]|第[一二三四五六]|[①②③④⑤]|材料\s*[1-6一二三]|摘|【)', '', s)
     s = re.sub(r'\s*三、\s*材料分析题.*$', '', s, flags=re.S)
+    s = re.sub(r'(?<=[）)])\s*(材料\s*[1-6一二三四])(?=\s*\n)', r'\n\1', s)
     s = re.sub(r'(^|\n)(材料\s*[1-6一二三四])\s*(?=[^\n])', r'\1\2\n', s)
     return s.strip()
 
@@ -45,19 +46,35 @@ def main():
     def g(s):
         for a, b in G: s = re.sub(a[3:], b, s) if a.startswith('re:') else s.replace(a, b)
         return s
+    JZ = json.load(open(f'{B}/work/jzt.json')) if os.path.exists(f'{B}/work/jzt.json') else {}
     out = []
     for k in sorted(raw, key=lambda k: (k[:2] != 'x8', k)):
         P = raw[k]; F = fx.get(k, {}); qs = []
+        RQ = P['qs']
+        # 第 34 题参考答案并进了第 33 题解析（「三、材料分析题 34.参考答案」那行没切开）
+        q33 = next((q for q in RQ if q['no'] == 33), None); q34 = next((q for q in RQ if q['no'] == 34), None)
+        if q33 and q34 and not q34.get('ea'):
+            m = re.search(r'\s*三、\s*材料分析题\s*\S{0,3}\s*[.．]?\s*参考答案\s*', q33.get('jx', ''))
+            if m: q34['ea'] = q33['jx'][m.end():]; q33['jx'] = q33['jx'][:m.start()]
+        # 下一题的「N.答案 X 简析…」被并进上一题解析（题号行没识别出来）：切回去
+        for i in range(len(RQ) - 1):
+            q1, q2 = RQ[i], RQ[i + 1]
+            if q1['t'] == 'e' or q2['t'] == 'e' or q2.get('jx'): continue
+            m = re.search(r'(?<=[。）)])\s*%d\s*[.．]\s*[［\[【]?\s*答{1,2}[案察]?\s*[】\]]?\s*[A-D]{0,4}\s*[（(]?简析[)）]?\s*' % q2['no'], q1.get('jx', ''))
+            if m: q2['jx'] = q1['jx'][m.end():]; q1['jx'] = q1['jx'][:m.start()]
         for q in P['qs']:
             no = q['no']; f = F.get(str(no), {})
             d = {'no': no, 't': q['t'], 'sj': subj(no), 'stem': q.get('stem', ''), 'pg': q.get('pg')}
             if q['t'] != 'e':
                 d['opts'] = list(q.get('opts') or ['', '', '', ''])
                 d['ans'] = q.get('ans', ''); d['jx'] = q.get('jx', '')
+                j = JZ.get(k[3:] + '-' + str(no)) if k.startswith('zt') else None
+                if j and not d['jx']:   # 真题解析取自《讲真题》解析分册（时政题它不收）
+                    d['jx'] = re.sub(r'^.{0,3}?(试题简析|试题筒析)\s*', '', j['jx']) + ('\n【名师点拨】' + j['db'] if j['db'] else ''); d['jxsrc'] = '讲真题解析分册 P%d' % j['pg']
             else: d['ea'] = q.get('ea', '')
             # 先统一清洗＋全局形近字，再套逐题校对（这样校对的「原文」与 dump_paper.py 看到的一致）
             d['stem'] = g(clean(d['stem']))
-            if 'opts' in d: d['opts'] = [g(clean(o)) for o in d['opts']]; d['jx'] = g(clean(d['jx']))
+            if 'opts' in d: d['opts'] = [g(clean(o)) for o in d['opts']]; d['jx'] = g(clean(d['jx'])).replace('\n\n', '\n')
             else: d['ea'] = g(clean(d['ea']))
             for fld, ch in f.items():
                 key, idx = (('opts', 'ABCD'.index(fld)) if fld in 'ABCD' and len(fld) == 1 else (fld, None))
@@ -66,6 +83,7 @@ def main():
                 else:
                     for a, b in ch:
                         if a in cur: cur = cur.replace(a, b, 1)
+                        elif b in cur: pass   # 全局表已经改好了
                         else: print('FIX MISS', k, no, fld, a)
                 if idx is not None: d[key][idx] = cur
                 else: d[key] = cur

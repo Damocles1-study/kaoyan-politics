@@ -25,7 +25,7 @@ def page_rows(P, pg):
             out.append([x0, y0, t, (y0 + y1) / 2, x1])
     res = []
     for x0, y0, t, ym, x1 in out:
-        if ym < 68 and ('套卷' in t or 'ZUZ' in t or '答案及解析' in t or len(t) < 4): continue
+        if ym < 68 and ('套卷' in t or 'ZUZ' in t or '答案及解析' in t or '讲真题' in t or '部分' in t or len(t) < 4): continue
         if ym > 930 and re.fullmatch(r'[\d\s•.·]{1,4}', t): continue
         res.append((x0, y0, t.strip()))
     return res
@@ -264,4 +264,40 @@ def _parse_zt_ans(P):
             if cur and not re.search(r'材料分析题参考答案将于', t): out[cur]['_l'].append((x0, t))
     for k, v in out.items():
         if '_l' in v: out[k] = {'ea': joinlines(v.pop('_l'))}
+    return out
+
+# ---------------- 讲真题解析分册：按【年份-题号】标签取 2024–2026 的逐题简析与名师点拨 ----------------
+def parse_jzt(years=('2024', '2025', '2026')):
+    P = load(src('讲真题_解析分册'))
+    out = {}; cur = None
+    TAG = re.compile(r'答案\s*([A-Da-dc]{1,4})?\s*[【\[［(（]\s*(20\d\d)\s*[-—一–]\s*(\d{1,2})\s*[】\]］)）]')
+    def flush():
+        nonlocal cur
+        if cur and cur['y'] in years:
+            txt = joinlines(cur['_l'])
+            txt = re.sub(r'^\s*(试题简析|试题筒析|试题简新)\s*', '', txt)
+            txt = re.sub(r'\s*(考点定位|老点定位|考点定位》).*$', '', txt, flags=re.S)
+            m = re.search(r'\s*名师点拨[》>]?\s*', txt)
+            jx, db = (txt[:m.start()], txt[m.end():]) if m else (txt, '')
+            out[(cur['y'], cur['no'])] = {'ans': cur['ans'], 'jx': jx.strip(), 'db': db.strip(), 'pg': cur['pg']}
+        cur = None
+    for pg in sorted(P):
+        for x0, y0, t in page_rows(P, pg):
+            t = re.sub(r'^[马毛习史思新纲原]\s*(?=\d{1,3}\s*[.．、]?\s*答)', '', t)
+            if re.match(r'^第[一二三四五六]部分', t): continue
+            m = TAG.search(t)
+            if m and re.match(r'^\s*\d{1,3}\s*[.．、]?\s*答', t):
+                flush()
+                cur = {'y': m.group(2), 'no': int(m.group(3)), 'ans': re.sub(r'[^A-D]', '', (m.group(1) or '').upper().replace('C', 'C')), '_l': [], 'pg': pg + 1}
+                rest = t[m.end():].strip()
+                if rest: cur['_l'].append((x0 + 30, rest))
+                continue
+            if cur is None: continue
+            if re.match(r'^(第[一二三四五六七八九十]+章|\d{2,3}\s+[A-D]{1,4}\s+\d)', t): flush(); continue
+            if re.fullmatch(r'[马毛习史思新纲原]{1,2}', t.strip()): continue
+            if re.search(r'公众号|考研小星球|网盘|包邮|无水印|草稿', t): continue
+            t = re.sub(r'\d{0,5}\s*考研政治\s*讲真题\s*[，,›•\s]*解析分册', '', t)
+            if not t.strip(): continue
+            cur['_l'].append((x0, t))
+    flush()
     return out
