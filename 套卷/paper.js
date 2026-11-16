@@ -1,6 +1,8 @@
 /* 政治复盘中心 · 整卷模考引擎
  * 数据：data_papers.js 挂 window.PAPERS = [{k, kind:'x8'|'zt', name, sub, src, qs:[题]}]
  *   题：{no, t:'s'|'m'|'e', sj:'my'|'mz'|'xg'|'sg'|'sx'|'sz', stem, opts[4], ans, jx, ea(分析题参考答案), asks[](分析题设问), pg(书页)}
+ *       mk:{m 秒杀, x 打个比方, k 口诀, n 新口径, g[] 分析题每问骨架, p 卷面要点}  lk/lk2:'讲义/xx.html#dN|节名'  fsrc/from:押题卷题源
+ *   知识点：点「📖 本题知识点」在本页弹出讲义那一节（fetch 讲义页截出 section），关掉就回到原题；「整页打开」带 ?pb=卷-题号，讲义页出回程钮
  * 本机记录（不与 1000 题的 pol_rec_v1 混，免得首页「已做」虚高）：
  *   pol_paper_v1       {卷k: [{ts, obj 选择得分, s 单选得分, m 多选得分, by:{sj:[得,满]}, dur 秒, ex:[5 道分析自估分]}]}
  *   pol_paper_rec_v1   {题id: {n, w, ok, pick, streak, ts}}   题id = 卷k-题号，如 x8-3-17
@@ -9,13 +11,16 @@
  * URL：?k=卷   ?k=卷&read=1 背题   ?wrong=1 跨卷错题重练
  */
 (function(){
+  try { history.scrollRestoration = 'manual'; } catch(e){}   // 回到本页时由下面按题号自己定位（浏览器自带的恢复会在渲染后乱跳）
   const P = window.PAPERS || [];
   const SJ = {my:'马原',mz:'毛中特',xg:'习概',sg:'史纲',sx:'思法',sz:'时政'};
   const SJO = ['my','mz','xg','sg','sx','sz'];
   const KIND = {x8:{h:'肖八 · 2027 冲刺 8 套卷', d:'肖秀荣 11 月出的 8 套模拟卷。肖八的价值在<b>选择题</b>（时政与新提法），大题看答案划关键词、不背整段——大题背肖四。'},
+                yt:{h:'押题卷 · 本站自组', d:'结构完全照真题（单选 16、多选 17、分析 5，题号分科同上）。题源两种：从 1000 题里挑的题<b>原题原答案不改</b>、标出题号；结合 2025–2026 时政自编的题一律标「自编」。<b>建议在肖八做完、肖四出来前</b>当查漏卷用。'},
                 zt:{h:'真题 · 近 3 年', d:'2024 起习概单列，五科题号分布三年完全一致（单选 马4 毛2 习3 史4 思1 时2；多选 马5 毛1 习4 史3 思2 时2）。真题的价值是<b>看出题口径</b>：同一知识点肖八怎么问、真题怎么问。'}};
   const L = k => { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch(e){ return {}; } };
   const S = (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+  const K_DONE='pol_paper_done';   // sessionStorage：刚交卷的这一卷（从讲义回来时还原成交卷后的样子）
   const K_LED='pol_paper_v1', K_REC='pol_paper_rec_v1', K_DR='pol_paper_draft_v1', K_ES='pol_paper_essay_v1', K_EX='pol_paper_ex_v1';
   let led = L(K_LED), rec = L(K_REC), essay = L(K_ES), exs = L(K_EX);
   const $ = s => document.querySelector(s), app = $('#app');
@@ -54,7 +59,7 @@
         const r = led[p.k] || [], b = best(p.k), l = last(p.k);
         const exTot = l && l.ex ? l.ex.reduce((a,x) => a + (+x||0), 0) : null;
         const dr = L(K_DR); const going = dr.k === p.k && Date.now() - dr.t0 < 864e5;
-        return `<div class="pc${r.length?' done':''}"><h3>${esc(p.name)}</h3><div class="meta">${esc(p.sub||'')} ${p.proof ? '<span class="pill green">文字已校对</span>' : '<span class="pill gold">识别稿 · 校对中</span>'}<br>` +
+        return `<div class="pc${r.length?' done':''}"><h3>${esc(p.name)}</h3><div class="meta">${esc(p.sub||'')} ${p.kind === 'yt' ? '<span class="pill blue">1000 题原题 ＋ 自编</span>' : p.proof ? '<span class="pill green">文字已校对</span>' : '<span class="pill gold">识别稿 · 校对中</span>'}<br>` +
           (r.length ? `做过 <b>${r.length}</b> 次 · 选择最好 <b>${b}</b>/50 · 最近 <b>${l.obj}</b>/50${exTot!=null && l.ex.some(x=>x!=null&&x!=='') ? ` ＋ 分析自估 <b>${exTot}</b>` : ''}` : '还没做过') +
           (going ? `<br><span class="pill gold">有未交卷的草稿</span>` : '') + `</div>
           <div class="acts"><a class="btn sm pri" href="?k=${p.k}">${going ? '继续作答' : r.length ? '再做一遍' : '开始'}</a><a class="btn sm" href="?k=${p.k}&read=1">背题</a></div></div>`;
@@ -67,12 +72,66 @@
   let cur = null;     // {p, picks, t0, lim, done, run, read}
   let timer = null;
   function startPaper(p, read){
+    // 从讲义「回套卷」或浏览器后退回来：刚交过的这卷还原成交卷后的样子
+    let dn = null; try { dn = JSON.parse(sessionStorage.getItem(K_DONE)); } catch(e){}
+    const nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+    const back = qp.get('ret') || (nav && nav.type === 'back_forward');
+    if (qp.get('new')) {   // 「再做一遍」：清掉刚交卷的状态，并把 new 从地址里去掉（否则从讲义后退回来会又清一次）
+      try { sessionStorage.removeItem(K_DONE); } catch(e){}
+      try { const u = new URL(location.href); u.searchParams.delete('new'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch(e){}
+    }
+    else if (!read && back && dn && dn.k === p.k){
+      cur = {p, picks: dn.picks || {}, t0: Date.now(), lim: 0, done: true, read: false, run: dn.run, onlyW: false};
+      document.title = p.name + ' · 整卷模考'; renderPaper(); goHash();
+      let ry = null; try { ry = JSON.parse(sessionStorage.getItem('pol_paper_y')); } catch(e){}
+      if (ry && ry.k === p.k && !/^#q\d+$/.test(location.hash)){ const go = () => { const el = $('#q' + ry.no); if (el) el.scrollIntoView({block:'start'}); }; go(); requestAnimationFrame(go); setTimeout(go, 150); setTimeout(go, 500); }
+      return;
+    }
+    if (!read && qp.get('ret')) read = true;
     const dr = L(K_DR);
     const keep = !read && dr.k === p.k && Date.now() - dr.t0 < 864e5;
     cur = {p, picks: keep ? dr.picks || {} : {}, t0: keep ? dr.t0 : Date.now(), lim: keep ? dr.lim || 0 : 0, done: !!read, read: !!read, run: null, onlyW: false};
     document.title = p.name + ' · 整卷模考';
-    renderPaper();
+    renderPaper(); goHash();
     if (!read) startTimer();
+  }
+  function goHash(){ const m = location.hash.match(/^#q(\d+)$/); if (m){ const el = $('#q' + m[1]); if (el) setTimeout(() => el.scrollIntoView({block:'start'}), 30); } }
+
+  /* ================= 知识点弹窗 ================= */
+  const KPC = {};
+  function kpBox(){
+    let b = $('#kp'); if (b) return b;
+    document.body.insertAdjacentHTML('beforeend', `<div id="kp" hidden><div class="kp-bg" data-kpx></div><div class="kp-win" role="dialog" aria-modal="true" aria-labelledby="kpT">
+      <div class="kp-h"><b id="kpT">知识点</b><a class="btn sm" id="kpFull" href="#">整页打开 ↗</a><button class="btn sm pri" data-kpx>✕ 回到本题</button></div>
+      <div class="kp-b lec" id="kpB"></div></div></div>`);
+    b = $('#kp');
+    b.addEventListener('click', e => { if (e.target.closest('[data-kpx]')) closeKP();
+      if (e.target.closest('#kpFull')) try { sessionStorage.setItem('pol_paper_y', JSON.stringify({k: kpKey.replace(/-\d+$/, ''), no: +kpKey.split('-').pop()})); } catch(err){} });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !b.hidden) closeKP(); });
+    return b;
+  }
+  let kpFrom = null, kpKey = '';
+  function closeKP(){ const b = $('#kp'); if (!b || b.hidden) return; b.hidden = true; document.documentElement.classList.remove('kp-on'); if (kpFrom) kpFrom.focus({preventScroll:true}); }
+  async function openKP(u, qkey, from){
+    const b = kpBox(), [file, sid] = u.split('#'), T = $('#kpT'), Bd = $('#kpB');
+    kpFrom = from; kpKey = qkey; b.hidden = false; document.documentElement.classList.add('kp-on');
+    T.textContent = '加载中…'; Bd.innerHTML = ''; Bd.scrollTop = 0;
+    $('#kpFull').href = `../${file}?pb=${encodeURIComponent(qkey)}#${sid}`;
+    try {
+      if (!KPC[file]) KPC[file] = fetch('../' + file).then(r => { if (!r.ok) throw 0; return r.text(); }).then(t => new DOMParser().parseFromString(t, 'text/html'));
+      const doc = await KPC[file], sec = doc.getElementById(sid);
+      if (!sec) throw 0;
+      const c = sec.cloneNode(true), dir = '../' + file.split('/')[0] + '/';
+      c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(x => x.removeAttribute('id'));
+      c.querySelectorAll('a[href]').forEach(a => { const h = a.getAttribute('href');
+        if (h.startsWith('#')) a.setAttribute('href', '../' + file + h);
+        else if (!/^(\.\.\/|[a-z]+:|\/)/i.test(h)) a.setAttribute('href', dir + h); });
+      c.querySelectorAll('img[src]').forEach(m => { const h = m.getAttribute('src'); if (!/^(\.\.\/|[a-z]+:|\/)/i.test(h)) m.setAttribute('src', dir + h); });
+      const h2 = c.querySelector('h2'); T.textContent = (doc.title || '').replace(/\s*讲义\s*$/, '') + ' · ' + (h2 ? h2.textContent.replace(/^\s*\d+\s*/, '') : '');
+      if (h2) h2.remove();
+      c.className = 'kp-sec'; Bd.appendChild(c);
+    } catch(err){ T.textContent = '没能载入讲义'; Bd.innerHTML = `<p class="note">本页是本机文件打开的（file://）或网络断了，点上面「整页打开」直接去讲义。</p>`; }
+    $('#kp [data-kpx].btn').focus({preventScroll:true});
   }
   function saveDraft(){ if (!cur.done) S(K_DR, {k: cur.p.k, picks: cur.picks, t0: cur.t0, lim: cur.lim}); }
 
@@ -91,17 +150,39 @@
     const ok = pick === q.ans;
     return `<div class="verdict ${ok?'ok':'bad'}">${ok?'答对了':'答错了'} · 答案 <b>${q.ans}</b> · 你选 <b>${pick}</b></div>`;
   }
+  /* 秒杀 · 打个比方 · 口诀 · 新口径 · 知识点 */
+  function lkHTML(q, k){
+    return [q.lk, q.lk2].filter(Boolean).map(l => { const [u,t] = l.split('|');
+      return `<a class="lk" href="../${esc(u)}" data-kp="${esc(u)}" data-q="${k}-${q.no}">📖 本题知识点：${esc(t)}<span class="kpgo">点开看 ›</span></a>`; }).join('');
+  }
+  function notesHTML(q, k){
+    const n = q.mk || {}; let h = '';
+    if (n.m) h += `<div class="miao">${n.m}</div>`;
+    if (n.x) h += `<div class="img">${n.x}</div>`;
+    if (n.k) h += `<div class="key kj">${n.k}</div>`;
+    if (n.n) h += `<div class="trap xk">${n.n}</div>`;
+    return h + lkHTML(q, k);
+  }
+  function essayNotes(q, k){
+    const n = q.mk || {}; let h = '';
+    if (n.g && n.g.length) h += `<div class="mem"><ol class="gu">${n.g.map(x => `<li>${x}</li>`).join('')}</ol></div>`;
+    if (n.p) h += `<div class="key juan">${n.p}</div>`;
+    if (n.k) h += `<div class="key kj">${n.k}</div>`;
+    if (n.n) h += `<div class="trap xk">${n.n}</div>`;
+    return h + lkHTML(q, k);
+  }
+  const fromHTML = (p, q) => q.fsrc ? `<span class="pill ${q.from ? 'blue' : 'gold'}">${esc(q.fsrc)}</span>` : '';
   function cardHTML(q){
     const p = cur.p, show = cur.done;
     const ok = show && !cur.read && (cur.picks[q.no]||'') === q.ans;
     const r = rec[qid(p,q)];
     let h = `<div class="card qcard${ok?' okq':''}" id="q${q.no}"><div class="qmeta"><span class="qidx">${q.no}</span>` +
-      (show ? `<span class="subj ${q.sj}">${SJ[q.sj]||''}</span>` : '') + `<span class="pill">${q.t==='s'?'单选 1 分':'多选 2 分'}</span>` +
+      (show ? `<span class="subj ${q.sj}">${SJ[q.sj]||''}</span>` : '') + `<span class="pill">${q.t==='s'?'单选 1 分':'多选 2 分'}</span>` + (show ? fromHTML(p, q) : '') +
       (show && r && r.n > 1 ? `<span class="pill ${r.ok?'green':'red'}">做过 ${r.n} 次 · ✘${r.w||0}</span>` : '') + `</div>` +
       `<div class="stem">${stemH(q.stem)}</div>` + optsHTML(q);
     if (show){
-      h += verdict(q);
-      if (q.jx) h += `<div class="jx"><div class="eh">📕 解析${q.jxsrc ? ' · 肖《讲真题》' : ''}</div>${hl(q.jx)}</div>`;
+      h += verdict(q) + notesHTML(q, p.k);
+      if (q.jx) h += `<div class="jx"><div class="eh">📕 ${p.kind === 'yt' ? (q.from ? '1000 题原书解析' : '解析（自编）') : '解析'}${q.jxsrc ? ' · 肖《讲真题》' : ''}</div>${hl(q.jx)}</div>`;
       else if (p.kind === 'zt') h += `<div class="src">《讲真题》没收这道题的解析（时政题，或提法已变的旧考点）。</div>`;
       if (q.pg) h += `<div class="src">题面：${esc(p.src||'')} P${q.pg}${q.jxsrc ? ' · 解析：' + esc(q.jxsrc) : ''}</div>`;
     }
@@ -110,12 +191,12 @@
   function essayHTML(q){
     const id = qid(cur.p, q), ex = exs[id];
     const open = cur.read;
-    return `<div class="card qcard" id="q${q.no}"><div class="qmeta"><span class="qidx">${q.no}</span><span class="subj ${q.sj}">${SJ[q.sj]||''}</span><span class="pill">分析题 10 分</span></div>
+    return `<div class="card qcard" id="q${q.no}"><div class="qmeta"><span class="qidx">${q.no}</span><span class="subj ${q.sj}">${SJ[q.sj]||''}</span><span class="pill">分析题 10 分</span>${fromHTML(cur.p, q)}</div>
       <div class="stem">${fmt(q.stem)}</div>` +
       (q.asks && q.asks.length ? `<ol class="ask-l">${q.asks.map(a => `<li>${esc(a)}</li>`).join('')}</ol>` : '') +
       `<textarea class="mine-ta" data-id="${id}" placeholder="先写关键词（存本机）：原理名 ＋ 材料里的对应句 ＋ 落脚点">${esc(essay[id]||'')}</textarea>
-      <details class="eafold"${open?' open':''}><summary class="btn sm" style="margin-top:8px">📕 参考答案</summary>` +
-      (q.ea ? `<div class="ea"><div class="eh">📕 参考答案 · 背的是要点句，不是材料</div>${hl(q.ea)}</div>` : `<div class="ea">本卷暂无官方公布的分析题参考答案。</div>`) +
+      <details class="eafold"${open?' open':''}><summary class="btn sm" style="margin-top:8px">🧭 答题骨架 ＋ 📕 参考答案</summary>` + essayNotes(q, cur.p.k) +
+      (q.ea ? `<div class="ea"><div class="eh">📕 ${cur.p.kind === 'yt' && !q.from ? '参考答案（自编）' : '参考答案'} · 背的是要点句，不是材料</div>${hl(q.ea)}</div>` : `<div class="ea">本卷暂无官方公布的分析题参考答案${q.mk && q.mk.g ? '——上面的答题骨架是本站按教材原理和题目设问整理的，可先按它组织答案' : ''}。</div>`) +
       `</details><div class="erow">自估分 <input type="number" min="0" max="10" step="0.5" data-ex="${id}" value="${ex==null?'':ex}"> / 10
       <span class="note" style="margin:0">（对照要点：每答到一个要点约 2 分，原理名写对＋联系材料才给满）</span></div></div>`;
   }
@@ -133,7 +214,7 @@
       (exN ? `分析自估 <b>${exTot}</b>/50（已估 ${exN}/5 题）⟹ 全卷约 <b>${run.obj + exTot}</b> 分` : `分析题写完自估分后，这里会算出全卷总分`) +
       `</div></div><div class="gridwrap"><table class="by"><tr><th>科目</th><th>得分</th><th>得分率</th><th>丢分</th></tr>${rows}</table></div>` +
       (worst && run.by[worst][1] > run.by[worst][0] ? `<p class="note">丢分最多：<b>${SJ[worst]}</b>（−${run.by[worst][1]-run.by[worst][0]}）。${worst==='sz' ? '时政回肖《形势与政策》补。' : `回 <a href="../题库/刷题.html?p=${worst}&t=all&mode=wrong">1000 题 · ${SJ[worst]}错题本</a>。`}</p>` : '') +
-      `<p class="act" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn sm" id="onlyW">${cur.onlyW ? '显示全部题' : '只看错题'}</button><a class="btn sm" href="?k=${p.k}">再做一遍</a><a class="btn sm" href="套卷.html?wrong=1">🔁 套卷错题重练</a></p>
+      `<p class="act" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn sm" id="onlyW">${cur.onlyW ? '显示全部题' : '只看错题'}</button><a class="btn sm" href="?k=${p.k}&new=1">再做一遍</a><a class="btn sm" href="套卷.html?wrong=1">🔁 套卷错题重练</a></p>
       <details><summary class="note" style="cursor:pointer">本卷历次成绩</summary><div class="hist">${hist}</div></details></section>`;
   }
 
@@ -179,6 +260,7 @@
     if ($('#lim')) $('#lim').onchange = e => { cur.lim = +e.target.value; if (cur.lim) cur.t0 = Date.now(); saveDraft(); tick(); };
     if ($('#onlyW')) $('#onlyW').onclick = () => { cur.onlyW = !cur.onlyW; renderPaper(); $('#sum').scrollIntoView(); };
     app.onclick = e => {
+      const kp = e.target.closest('[data-kp]'); if (kp && !e.metaKey && !e.ctrlKey){ e.preventDefault(); openKP(kp.dataset.kp, kp.dataset.q, kp); return; }
       const g = e.target.closest('[data-go]'); if (g){ const el = $('#q' + g.dataset.go); if (el) el.scrollIntoView({behavior:'smooth', block:'start'}); return; }
       const b = e.target.closest('.opt'); if (!b || cur.done) return;
       const no = +b.dataset.no, q = cur.p.qs.find(x => x.no === no), k = b.dataset.k;
@@ -228,6 +310,7 @@
     (led[p.k] = led[p.k] || []).push(run); S(K_LED, led);
     try { localStorage.removeItem(K_DR); } catch(e){}
     cur.done = true; cur.run = run;
+    try { sessionStorage.setItem(K_DONE, JSON.stringify({k: p.k, picks: cur.picks, run})); } catch(e){}
     renderPaper(); window.scrollTo(0, 0);
     if (auto) alert('时间到，已自动交卷。');
   }
@@ -249,9 +332,10 @@
       el.querySelectorAll('.opt').forEach(b => { const k = b.dataset.k, inA = q.ans.includes(k), inP = pk.includes(k); b.classList.add('lock'); b.classList.remove('sel');
         if (inA) b.classList.add(inP ? 'right' : 'miss'); else if (inP) b.classList.add('wrong'); });
       const sb = el.querySelector('[data-subm]'); if (sb) sb.remove();
-      el.querySelector('.res').innerHTML = `<div class="verdict ${ok?'ok':'bad'}">${ok?'答对了':'答错了'} · 答案 <b>${q.ans}</b>${ok && r.streak>=2 ? ' · 连对 2 次，出本' : ''}</div>` + (q.jx ? `<div class="jx"><div class="eh">📕 解析</div>${hl(q.jx)}</div>` : '');
+      el.querySelector('.res').innerHTML = `<div class="verdict ${ok?'ok':'bad'}">${ok?'答对了':'答错了'} · 答案 <b>${q.ans}</b>${ok && r.streak>=2 ? ' · 连对 2 次，出本' : ''}</div>` + notesHTML(q, p.k) + (q.jx ? `<div class="jx"><div class="eh">📕 解析</div>${hl(q.jx)}</div>` : '');
       el.dataset.done = 1; };
     app.onclick = e => {
+      const kp = e.target.closest('[data-kp]'); if (kp && !e.metaKey && !e.ctrlKey){ e.preventDefault(); openKP(kp.dataset.kp, kp.dataset.q, kp); return; }
       const sb = e.target.closest('[data-subm]'); if (sb){ if (picks[sb.dataset.subm]) judge(+sb.dataset.subm); return; }
       const b = e.target.closest('.opt'); if (!b) return; const i = +b.dataset.i; if ($('#w'+i).dataset.done) return;
       const q = list[i].q, k = b.dataset.k;

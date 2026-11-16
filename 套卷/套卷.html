@@ -80,6 +80,27 @@
   .chkbar{margin:0 0 12px;padding:8px 12px;border:2px dashed var(--gold);background:var(--gold-soft);color:var(--ink);font-size:.86rem;font-weight:700;line-height:1.6}
   .seg button{white-space:nowrap}
   @media (max-width:700px){ .plist{grid-template-columns:1fr} }
+  /* 秒杀笔记 · 知识点弹窗（2026-11-16） */
+  .qcard .miao,.qcard .img,.qcard .kj,.qcard .xk,.qcard .mem,.qcard .juan{margin:12px 0 0}
+  .kj::before{content:"口诀"!important;background:var(--accent)!important}
+  .xk::before{content:"新口径"!important}
+  .juan::before{content:"卷面怎么写"!important;background:var(--ink)!important}
+  .mem .gu{margin:0;padding-left:1.4em} .mem .gu li{margin:5px 0}
+  .lk{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-top:10px;padding:9px 14px;border:2px solid var(--ink-line);border-radius:4px;background:var(--blue-soft);color:var(--blue);font-weight:800;text-decoration:none;
+    box-shadow:3px 3px 0 var(--drop);transition:transform .1s,box-shadow .1s;overflow-wrap:anywhere}
+  .lk:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--drop)}
+  .lk .kpgo{margin-left:auto;font-size:.8rem;font-weight:700;opacity:.8;white-space:nowrap}
+  #kp{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+  #kp[hidden]{display:none}
+  .kp-bg{position:absolute;inset:0;background:rgba(10,10,10,.55)}
+  .kp-win{position:relative;width:min(760px,100%);max-height:min(86vh,900px);display:flex;flex-direction:column;background:var(--card);color:var(--ink);border:3px solid var(--ink-line);border-radius:4px;box-shadow:6px 6px 0 var(--drop)}
+  .kp-h{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border-bottom:2px solid var(--ink-line);background:var(--bg)}
+  .kp-h b{flex:1 1 200px;min-width:0;font-family:var(--serif);font-weight:900;font-size:1rem;line-height:1.4}
+  .kp-b{overflow:auto;padding:4px 16px 16px;overscroll-behavior:contain;overflow-wrap:anywhere}
+  .kp-b .kp-sec{border:0;box-shadow:none;background:none;padding:0;margin:0}
+  .kp-b table{font-size:.86rem}
+  html.kp-on{overflow:hidden}
+  @media (max-width:700px){ #kp{padding:8px} .kp-win{max-height:92vh} .kp-b{padding:4px 12px 14px} }
 </style>
 </head>
 <body>
@@ -88,7 +109,7 @@
   <p class="empty">加载中…</p>
 </div>
 <script src="data_papers.js"></script>
-<script src="../assets/common.js?v=daily2"></script>
-<script src="paper.js?v=1"></script>
+<script src="../assets/common.js?v=pb1"></script>
+<script src="paper.js?v=8"></script>
 </body>
 </html>

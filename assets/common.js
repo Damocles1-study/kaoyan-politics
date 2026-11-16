@@ -139,6 +139,19 @@
     // 4) 分段控件
     document.querySelectorAll('.seg').forEach(seg);
 
+    // 4b) 从整卷模考的「整页打开」跳来（?pb=卷-题号）：出一个回到原题的钮；刚从套卷来就后退（套卷页会还原交卷后的样子）
+    (function(){
+      var pb = new URLSearchParams(location.search).get('pb'), m = pb && pb.match(/^((?:x8|zt|yt)-\d+)-(\d+)$/);
+      if (!m) return;
+      var url = '../套卷/套卷.html?k=' + m[1] + '&ret=1#q' + m[2];
+      document.body.insertAdjacentHTML('beforeend', '<a class="btn pri pb-back" href="' + url + '" style="position:fixed;left:12px;bottom:12px;z-index:40">← 回套卷第 ' + m[2] + ' 题</a>');
+      var c = document.querySelector('.crumb'); if (c) c.insertAdjacentHTML('afterbegin', '<a href="' + url + '" class="pb-back">📝 回套卷第 ' + m[2] + ' 题</a>');
+      document.addEventListener('click', function(e){
+        var a = e.target.closest('a.pb-back'); if (!a) return;
+        try { if (document.referrer && /套卷\.html$/.test(decodeURIComponent(new URL(document.referrer).pathname)) && history.length > 1){ e.preventDefault(); history.back(); } } catch(err){}
+      });
+    })();
+
     // 5) 讲义 → 刷题：qlink 带上本节题号 ids 与回程地址 back，刷完一键回到这一节；节末显示完成度
     qlinks();
     window.addEventListener('pageshow', function(e){ if (e.persisted) qlinks(); restoreY(); });
