@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>三科夜背</title>
+<meta name="description" content="政治 · 408 · 英语一，每晚半小时左右的考场向背诵，按晚排到初试前一天。">
+<link rel="stylesheet" href="../assets/style.css?v=sect1">
+<link rel="stylesheet" href="../assets/skin.css?v=3">
+<script src="../assets/skin.js?v=3"></script>
+<style>
+  /* ── 夜背页专用：颜色一律取站内变量，深浅色与三套主题自动跟随 ── */
+  .nt{--po:var(--red);--cs:var(--blue);--en:var(--green)}
+  .nt .lead{margin-top:2px}
+  .nt-meta{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin:4px 0 2px}
+  .nt-meta .pill{font-variant-numeric:tabular-nums}
+  .nt-cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:12px}
+  .nt-cal .wd{font-size:.72rem;color:var(--muted);text-align:center;font-weight:800}
+  .nt-cal .day{position:relative;min-width:0;border:2px solid var(--ink-line);background:var(--card);color:var(--ink);border-radius:4px;
+    padding:6px 2px 7px;font:inherit;cursor:pointer;text-align:center;line-height:1.15;transition:transform .15s var(--ease),box-shadow .15s var(--ease)}
+  .nt-cal .day:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--drop)}
+  .nt-cal .day b{color:inherit;display:block;font-family:var(--round);font-size:1.02rem;font-style:italic;font-variant-numeric:tabular-nums}
+  .nt-cal .day .mo{font-size:.68em;opacity:.7;font-style:normal}
+  .nt-cal .day small{display:block;font-size:.66rem;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nt-cal .day::after{content:"";position:absolute;left:5px;right:5px;bottom:2px;height:3px;border-radius:2px;background:var(--phc,transparent)}
+  .nt-cal .day.p1{--phc:var(--blue)} .nt-cal .day.p2{--phc:var(--purple)} .nt-cal .day.p3{--phc:var(--orange)} .nt-cal .day.p4{--phc:var(--red)}
+  .nt-cal .day.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+  .nt-cal .day.on small{color:var(--card);opacity:.8}
+  .nt-cal .day.today:not(.on){outline:3px solid var(--pop);outline-offset:1px}
+  .nt-cal .day.done b::after{content:" ✓";color:var(--green);font-style:normal;font-size:.8em}
+  .nt-cal .day.on.done b::after{color:var(--pop)}
+  .nt-cal .day.past:not(.done):not(.on){opacity:.62}
+  .nt-leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.76rem;color:var(--muted);margin-top:10px;font-weight:700}
+  .nt-leg i{display:inline-block;width:14px;height:4px;border-radius:2px;vertical-align:middle;margin-right:5px}
+
+  .nt-bar{position:sticky;top:0;z-index:20;margin:0 -2px 14px;padding:8px 10px;background:var(--card);border:2px solid var(--ink-line);border-radius:4px;
+    box-shadow:3px 3px 0 var(--drop);display:grid;grid-template-columns:minmax(40px,1fr) auto auto;gap:8px 10px;align-items:center}
+  .nt-bar .seg{grid-column:1 / -1;box-shadow:none}
+  .nt-bar .prog{height:10px;border:2px solid var(--ink-line);background:var(--bg);overflow:hidden;border-radius:2px}
+  .nt-bar .prog i{display:block;height:100%;width:0;background:var(--green);transition:width .4s var(--ease)}
+  .nt-bar .pct{font-size:.8rem;color:var(--muted);font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .nt-bar .tm{display:flex;gap:6px;align-items:center;font-size:.82rem;color:var(--muted);font-weight:700}
+  .nt-bar .tm .btn{padding:4px 9px;white-space:nowrap}
+  #estTxt{display:none}
+  .nt-bar .tm .clock{font-family:var(--round);font-style:italic;font-size:1.15rem;color:var(--ink);font-variant-numeric:tabular-nums;min-width:4.2em}
+  @media (min-width:720px){ .nt-bar{grid-template-columns:auto 1fr auto auto;padding:10px 12px} .nt-bar .seg{grid-column:auto;min-width:300px} #estTxt{display:inline} }
+
+  .nt-sub>h2{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .nt-sub>h2 .mins{font-size:.8rem;font-weight:800;color:var(--muted);font-family:var(--sans)}
+  .nt-sub>h2 .dot{width:12px;height:12px;border-radius:3px;background:var(--sc);display:inline-block;flex:none;align-self:center}
+  .nt-sub.po{--sc:var(--po)} .nt-sub.cs{--sc:var(--cs)} .nt-sub.en{--sc:var(--en)} .nt-sub.rv0{--sc:var(--gold)}
+  .nt-sec{margin-top:18px}
+  .nt-sec:first-of-type{margin-top:6px}
+  .nt-sec>h3{font-size:1rem;font-family:var(--serif);font-weight:900;margin:0 0 8px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+  .nt-sec>h3 small{font-family:var(--sans);font-size:.76rem;color:var(--muted);font-weight:700}
+  .nt-sec>.note{margin:-2px 0 8px}
+
+  /* 条目 */
+  .it{position:relative;border:1.5px solid var(--line);border-left:4px solid var(--sc);border-radius:4px;background:var(--bg);padding:10px 12px;margin:8px 0;overflow-wrap:anywhere}
+  .it .tag{font-size:.72rem;color:var(--muted);font-weight:800;letter-spacing:.02em;margin-bottom:3px;display:flex;gap:8px;justify-content:space-between;align-items:baseline}
+  .it .tag a{color:var(--muted);font-weight:700;white-space:nowrap;text-decoration:none;border-bottom:1px dotted var(--muted)}
+  .it .tag a:hover{color:var(--accent);border-color:var(--accent)}
+  .it .q{font-weight:800;color:var(--ink);line-height:1.7;font-size:1rem}
+  .it .cue{margin-top:5px;font-size:.84rem;color:var(--ink2);line-height:1.7}
+  .it .cue span{display:inline-block;border:1.5px solid var(--line);background:var(--card);border-radius:3px;padding:0 7px;margin:2px 4px 2px 0;font-weight:700}
+  .it .a{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);line-height:1.85;color:var(--ink);font-size:.96rem}
+  .it .a p{margin:4px 0} .it .a ol,.it .a ul{margin:4px 0;padding-left:1.35em} .it .a li{margin:3px 0}
+  .it .a .tip{font-size:.86rem;color:var(--ink2);background:var(--card);border-radius:3px;padding:6px 9px;margin-top:8px}
+  .it .a .sm,.it .sm{font-size:.86rem;color:var(--ink2)}
+  .it .en,.it .w,.it .ex{font-family:Georgia,"Times New Roman","Songti SC",serif;letter-spacing:0}
+  .it .a .en{margin:5px 0;line-height:1.75}
+  .it code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.86em;background:var(--card);border:1px solid var(--line);border-radius:3px;padding:0 4px}
+  .it i.m{font-family:"Times New Roman",Georgia,serif;font-style:italic;white-space:nowrap}
+  .it .r{color:var(--accent);font-weight:800} .it .g{color:var(--green);font-weight:800} .it .bl{color:var(--blue);font-weight:800}
+  .it .peek{display:none;margin-top:8px;width:100%;border:1.5px dashed var(--ink-line);background:var(--card);color:var(--ink2);font:inherit;font-size:.86rem;font-weight:800;
+    padding:7px;border-radius:3px;cursor:pointer}
+  .it .peek:hover{color:var(--accent);border-color:var(--accent)}
+  .test .it.qa:not(.open) .a{display:none}
+  .test .it.qa:not(.open) .peek{display:block}
+  .it.open{background:var(--card)}
+
+  /* 行式（卡片、单词、帽子表）：一行一条，左问右答 */
+  .rows{border:1.5px solid var(--line);border-left:4px solid var(--sc);border-radius:4px;background:var(--bg);overflow:hidden}
+  .rows .it{border:0;border-radius:0;margin:0;background:transparent;padding:9px 12px;display:grid;grid-template-columns:minmax(0,1fr);gap:4px;cursor:pointer;border-left:0}
+  .rows .it+.it{border-top:1px solid var(--line)}
+  .rows .it .q{font-size:.95rem;font-weight:700}
+  .rows .it .a{margin:0;padding:0;border:0;font-size:.95rem;color:var(--k-w);font-weight:700}
+  .rows .it .a .gl{display:block;color:var(--k-w)}
+  .rows .it .a .ex{display:block;color:var(--ink2);font-weight:400;font-size:.86rem;font-style:italic}
+  .rows .it .a .ex i{font-style:normal;color:var(--muted);font-family:var(--sans);font-size:.78rem;margin-left:4px}
+  .rows .it .w{font-size:1.05rem;font-weight:700}
+  .rows .it .ipa{font-size:.8rem;color:var(--muted);font-weight:400;font-family:"Lucida Sans Unicode","Arial Unicode MS",sans-serif}
+  .test .rows .it:not(.open) .a{position:relative;color:transparent;background:var(--card);border:1.5px dashed var(--ink-line);border-radius:3px;min-height:2em;user-select:none;opacity:.75}
+  .test .rows .it:not(.open) .a::after{content:"点一下看答案";position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.78rem;font-weight:700;visibility:visible}
+  .test .rows .it:not(.open) .a *{visibility:hidden}
+  .rows .it .mk{justify-self:end}
+  .rows .it.m2 .q{color:var(--muted)}
+  .rows .grp{font-size:.72rem;font-weight:800;color:var(--muted);background:var(--card);padding:4px 12px;border-top:1px solid var(--line)}
+  .rows .grp:first-child{border-top:0}
+  @media (min-width:720px){
+    .rows .it{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) auto;align-items:center;gap:12px}
+    .rows .it .mk{margin:0}
+  }
+
+  /* 标记 */
+  .mk{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+  .mk button{border:1.5px solid var(--ink-line);background:var(--card);color:var(--ink2);font:inherit;font-size:.76rem;font-weight:800;border-radius:3px;padding:3px 9px;cursor:pointer;line-height:1.4;min-height:30px}
+  .mk button:hover{transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--drop)}
+  .mk button[data-v="0"].on{background:var(--red);color:#fff;border-color:var(--red)}
+  .mk button[data-v="1"].on{background:var(--gold);color:#fff;border-color:var(--gold)}
+  .mk button[data-v="2"].on{background:var(--green);color:#fff;border-color:var(--green)}
+  html[data-theme="dark"] .mk button.on,html:not([data-theme="light"]) .mk button.on{color:var(--card)}
+  .it.m0{border-left-color:var(--red)} .it.m1{border-left-color:var(--gold)}
+  .rows .it.m0{box-shadow:inset 4px 0 0 var(--red)} .rows .it.m1{box-shadow:inset 4px 0 0 var(--gold)}
+  .it .act{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  .it .act .all{border:0;background:none;color:var(--muted);font:inherit;font-size:.78rem;font-weight:800;cursor:pointer;padding:6px 0;text-decoration:underline dotted}
+  .it .act .all:hover{color:var(--accent)}
+  .rev .it .a .rv{cursor:pointer}
+  .read .it .all{display:none}
+  .it .a ul.nol{list-style:none;padding-left:0}
+  .it .a ul.nol li{margin:6px 0}
+
+  details.known{margin-top:8px;border:1.5px dashed var(--line);border-radius:4px;padding:6px 10px;background:var(--bg)}
+  details.known>summary{cursor:pointer;font-size:.84rem;font-weight:800;color:var(--muted)}
+  details.known[open]>summary{margin-bottom:6px}
+  .tasks label{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1.5px solid var(--line);border-radius:4px;background:var(--bg);margin:6px 0;cursor:pointer;line-height:1.7}
+  .tasks input{width:18px;height:18px;margin-top:4px;flex:none;accent-color:var(--green)}
+  .tasks label.ok{color:var(--muted);text-decoration:line-through}
+  .nt-end{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:6px}
+  .nt-empty{padding:12px;text-align:center;color:var(--muted);font-weight:700;border:1.5px dashed var(--line);border-radius:4px}
+  .howto ol{padding-left:1.3em;margin:6px 0} .howto li{margin:4px 0;line-height:1.8}
+  @media (max-width:420px){ .nt-cal{gap:4px} .nt-cal .day small{font-size:.6rem} .it{padding:9px 10px} }
+</style>
+</head>
+<body>
+<div class="wrap nt">
+<div class="crumb"><a href="../index.html">← 政治复盘中心</a><a href="背诵卡.html">🃏 背诵卡</a><a href="哲学十六原理.html">🧠 十六原理</a><a href="思法十四专题.html">🌱 思法十四专题</a></div>
+<header>
+  <h1>三科夜背</h1>
+  <p class="sub">政治 · 408 · 英语一，每晚半小时上下，只背考场上用得到的：<b>分析题框架、选择题帽子、408 的一页纸与陷阱、作文骨架和必会词</b>。从 11 月 25 日排到 12 月 19 日。</p>
+</header>
+
+<section class="card" id="cal">
+  <h2>今晚是哪一晚</h2>
+  <div class="nt-meta" id="meta"></div>
+  <p class="lead" id="nightTitle"></p>
+  <div class="nt-cal" id="calGrid"></div>
+  <div class="nt-leg"><span><i style="background:var(--blue)"></i>一轮 11/25–12/8：三科各过一遍</span><span><i style="background:var(--purple)"></i>二轮 12/9–12/15：标了「记住」的自动收起</span><span><i style="background:var(--orange)"></i>冲刺 12/16–12/18</span><span><i style="background:var(--red)"></i>12/19 晚：408 考前</span></div>
+</section>
+
+<div class="nt-bar" id="bar">
+  <div class="seg" id="modeSeg"><button data-m="read">📖 先读一遍</button><button data-m="test">🙈 合上自测</button></div>
+  <div class="prog" aria-hidden="true"><i id="progI"></i></div>
+  <span class="pct" id="pct">0 / 0</span>
+  <div class="tm"><span class="clock" id="clock">00:00</span><button class="btn sm" id="tmBtn">⏱ 计时</button><span id="estTxt"></span></div>
+</div>
+
+<div id="main"></div>
+
+<section class="card howto" id="howto">
+  <h2>怎么用</h2>
+  <ol>
+    <li><b>先读一遍</b>：顺着往下读，读到的同时在心里复述一次。每条读完点一下 <b>没记住 / 模糊 / 记住</b>，十秒钟的事。</li>
+    <li><b>合上自测</b>：答案收起来（政治框架和作文骨架是把彩色关键词挖成空格），先自己说，再点开对。一轮的晚上建议先读后测，二轮起直接自测。</li>
+    <li><b>标记是有用的</b>：标了没记住或模糊的，会在之后第 1、3、7 晚的开头「先回顾」里再出现；二轮和冲刺晚上，标了「记住」的自动折叠，只剩你还不熟的。最后两晚还会把每科剩下的不熟条目全部拉出来。</li>
+    <li>每晚三科的顺序：<b>政治 → 408 → 英语</b>。政治先考、分量最重；英语放最后，作文句子读出声，读完就睡。</li>
+    <li>记录只存在这台设备的浏览器里（键 <code>pol_night_v1</code>），换手机或电脑不会同步。</li>
+  </ol>
+  <p class="note">素材都来自三个复盘中心：政治的背诵卡、十六原理、思法十四专题、讲义金框与帽子对照表；408 术式 52 话的「领域展开」「合上自测」「陷阱」与口诀；英语新版词库、作文句与阅读套路。英语作文骨架与几条答题骨架是本页补写的。点条目右上角的小字可以跳回原处。</p>
+</section>
+<p class="footer">兄弟中心：<a href="https://damocles1-study.github.io/kaoyan-408/">408</a> · <a href="https://damocles1-study.github.io/kaoyan-english/">英语一</a> · <a href="../index.html">政治</a></p>
+</div>
+
+<script src="data_night.js?v=1"></script>
+<script src="../assets/common.js?v=pb1"></script>
+<script>
+(function(){
+  var D = window.NIGHT, I = D.items, NN = D.nights.length;
+  var K = 'pol_night_v1';
+  var S = {m:{}, done:{}, mode:{}, t:{}, tk:{}};
+  try { var o = JSON.parse(localStorage.getItem(K)); if (o) for (var k in S) if (o[k]) S[k] = o[k]; } catch(e){}
+  function save(){ try { localStorage.setItem(K, JSON.stringify(S)); } catch(e){} }
+  var SUB = {po:'政治', cs:'408', en:'英语'}, WD = '日一二三四五六';
+  var PHC = {'一轮':'p1','二轮':'p2','冲刺':'p3','考前夜':'p4'};
+
+  /* 今晚：北京时间，凌晨 5 点前仍算前一晚（图书馆回来晚了也对得上） */
+  function cnDate(){ var t = new Date(Date.now() + 8*36e5 - 5*36e5); return t.toISOString().slice(0,10); }
+  function dIdx(ds){ return Math.round((Date.parse(ds) - Date.parse(D.start)) / 864e5); }
+  var todayIdx = dIdx(cnDate());
+  var autoN = Math.min(NN, Math.max(1, todayIdx + 1));
+  var qn = parseInt(new URLSearchParams(location.search).get('n'), 10);
+  var N = (qn >= 1 && qn <= NN) ? qn : autoN;
+
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function night(n){ return D.nights[n-1]; }
+  function mode(){ var nt = night(N); return S.mode[N] || (nt.ph === '一轮' ? 'read' : 'test'); }
+  function fmtD(ds){ var d = new Date(ds + 'T12:00:00+08:00'); return (d.getMonth()+1) + '/' + d.getDate() + ' 周' + WD[d.getDay()]; }
+  function isExt(u){ return /^https?:/.test(u); }
+
+  /* ── 日历 ── */
+  function drawCal(){
+    var first = new Date(D.start + 'T12:00:00+08:00').getDay();  // 0 = 周日
+    var lead = (first + 6) % 7;                                     // 周一开头
+    var h = '一二三四五六日'.split('').map(function(w){ return '<div class="wd">' + w + '</div>'; }).join('');
+    for (var i = 0; i < lead; i++) h += '<div></div>';
+    D.nights.forEach(function(nt){
+      var c = 'day ' + PHC[nt.ph] + (nt.n === N ? ' on' : '') + (nt.n === todayIdx + 1 ? ' today' : '') + (S.done[nt.n] ? ' done' : '') + (nt.n < todayIdx + 1 ? ' past' : '');
+      var d = new Date(nt.d + 'T12:00:00+08:00');
+      var mins = nightMin(nt.n);
+      var mo = (nt.n === 1 || d.getDate() === 1) ? '<span class="mo">' + (d.getMonth()+1) + '/</span>' : '';
+      h += '<button class="' + c + '" data-n="' + nt.n + '" title="' + esc(fmtD(nt.d) + ' · ' + nt.title) + '" aria-label="' + esc(fmtD(nt.d) + '，第 ' + nt.n + ' 晚，约 ' + mins + ' 分钟') + '"><b>' + mo + d.getDate() + '</b><small>' + mins + '′</small></button>';
+    });
+    document.getElementById('calGrid').innerHTML = h;
+  }
+  document.getElementById('calGrid').addEventListener('click', function(e){
+    var b = e.target.closest('.day'); if (!b) return;
+    go(+b.dataset.n, true);
+  });
+
+  /* ── 条目 ── */
+  function mkBtns(id){
+    var v = S.m[id];
+    return '<div class="mk" role="group" aria-label="记住了吗">'
+      + '<button data-v="0"' + (v === 0 ? ' class="on"' : '') + '>没记住</button>'
+      + '<button data-v="1"' + (v === 1 ? ' class="on"' : '') + '>模糊</button>'
+      + '<button data-v="2"' + (v === 2 ? ' class="on"' : '') + '>记住</button></div>';
+  }
+  function link(it){
+    if (!it.u) return '';
+    var lab = isExt(it.u) ? (/kaoyan-408/.test(it.u) ? '术式408 ↗' : '英语中心 ↗') : '回原处 →';
+    return '<a href="' + esc(it.u) + '"' + (isExt(it.u) ? ' target="_blank" rel="noopener"' : '') + '>' + lab + '</a>';
+  }
+  function cls(id){ var v = S.m[id]; return v == null ? '' : ' m' + v; }
+  function blockItem(id, s){
+    var it = I[id]; if (!it) return '';
+    var cz = it.k === 'cz';
+    return '<div class="it ' + (cz ? 'cz' : 'qa') + cls(id) + '" data-id="' + esc(id) + '" style="--sc:var(--' + s + ')">'
+      + '<div class="tag"><span>' + esc(it.g || '') + '</span>' + link(it) + '</div>'
+      + '<div class="q">' + it.f + '</div>'
+      + (it.c ? '<div class="cue">' + it.c + '</div>' : '')
+      + '<button class="peek">先自己说一遍，再点开对答案</button>'
+      + '<div class="a">' + it.b + '</div>'
+      + '<div class="act">' + mkBtns(id) + (cz ? '<button class="all">揭开全部关键词</button>' : '') + '</div></div>';
+  }
+  function rowItem(id){
+    var it = I[id]; if (!it) return '';
+    return '<div class="it rw' + cls(id) + '" data-id="' + esc(id) + '"><div class="q">' + it.f + '</div><div class="a">' + it.b + '</div>' + mkBtns(id) + '</div>';
+  }
+  function list(ids, s){
+    if (!ids.length) return '';
+    var rows = [], h = '', buf = [], lastG = null;
+    function flush(){ if (buf.length){ h += '<div class="rows" style="--sc:var(--' + s + ')">' + buf.join('') + '</div>'; buf = []; lastG = null; } }
+    ids.forEach(function(id){
+      var it = I[id]; if (!it) return;
+      if (it.row){
+        if (it.g !== lastG){ buf.push('<div class="grp">' + esc(it.g) + '</div>'); lastG = it.g; }
+        buf.push(rowItem(id));
+      } else { flush(); h += blockItem(id, s); }
+    });
+    flush();
+    return h;
+  }
+  function secMins(ids, hk){ var t = 0; ids.forEach(function(id){ if (!(hk && S.m[id] === 2)) t += (I[id] ? I[id].e : 0); }); return t; }
+  function weak(subj){
+    var out = [], seen = {};
+    D.nights.forEach(function(nt){ nt.secs.forEach(function(sc){ if (sc.s !== subj) return; sc.ids.forEach(function(id){ if (!seen[id] && (S.m[id] === 0 || S.m[id] === 1)){ seen[id] = 1; out.push(id); } }); }); });
+    return out;
+  }
+  /* 按当前标记实算一晚要多久：二轮 / 冲刺里已标「记住」的收起，不算时间 */
+  function nightMin(n){
+    var nt = night(n), t = 0;
+    nt.secs.forEach(function(sc){ t += secMins(sc.dyn ? weak(sc.dyn) : sc.ids, sc.hk); });
+    review(n).forEach(function(x){ t += I[x[0]] ? I[x[0]].e : 0; });
+    if (nt.tasks && nt.tasks.length) t += 600;
+    return Math.max(1, Math.round(t / 60));
+  }
+  function review(n){
+    var out = [], seen = {};
+    [1, 3, 7].forEach(function(b){
+      var p = n - b; if (p < 1) return;
+      night(p).secs.forEach(function(sc){ sc.ids.forEach(function(id){ if (!seen[id] && (S.m[id] === 0 || S.m[id] === 1)){ seen[id] = 1; out.push([id, sc.s]); } }); });
+    });
+    return out.slice(0, 30);
+  }
+
+  var CUR = [];  // 今晚页面上出现的全部条目（算进度用）
+  function render(){
+    var nt = night(N), m = mode();
+    CUR = [];
+    var meta = document.getElementById('meta');
+    var toExam = Math.ceil((Date.parse(D.exam + 'T08:30:00+08:00') - Date.now()) / 864e5);
+    meta.innerHTML = '<span class="pill red">第 ' + N + ' / ' + NN + ' 晚</span><span class="pill">' + fmtD(nt.d) + '</span><span class="pill purple">' + nt.ph + '</span>'
+      + '<span class="pill blue">约 ' + nightMin(N) + ' 分钟</span>' + (toExam > 0 ? '<span class="pill">距政治初试 ' + toExam + ' 天</span>' : '')
+      + (N !== autoN ? '<button class="btn sm" id="backToday">回到今晚</button>' : '');
+    document.getElementById('nightTitle').innerHTML = '<b>' + esc(nt.title) + '</b>' + (N === todayIdx + 1 ? '　· 今晚' : N < todayIdx + 1 ? '　· 已过的一晚（可以补）' : '　· 还没到（可以先看）');
+    var bt = document.getElementById('backToday'); if (bt) bt.onclick = function(){ go(autoN, true); };
+
+    var h = '';
+    // 任务（肖四等纸质书）
+    if (nt.tasks && nt.tasks.length){
+      h += '<section class="card nt-sub po tasks" id="tk"><h2><span class="dot"></span>纸质书任务<span class="mins">约 10 分钟</span></h2>'
+        + nt.tasks.map(function(t, i){ var k = N + ':' + i, ok = !!S.tk[k]; return '<label class="' + (ok ? 'ok' : '') + '"><input type="checkbox" data-tk="' + k + '"' + (ok ? ' checked' : '') + '>' + esc(t) + '</label>'; }).join('')
+        + '<p class="note">' + esc(D.task_note) + '</p></section>';
+    }
+    // 回顾
+    var rv = review(N);
+    if (rv.length){
+      var rids = rv.map(function(x){ return x[0]; });
+      h += '<section class="card nt-sub rv0 ' + m + '" id="rev"><h2><span class="dot"></span>先回顾<span class="mins">' + rv.length + ' 条 · 约 ' + Math.max(1, Math.round(secMins(rids) / 60)) + ' 分钟</span></h2>'
+        + '<p class="note">第 ' + [N-1, N-3, N-7].filter(function(x){ return x >= 1; }).join('、') + ' 晚里你标了「没记住」或「模糊」的。这次记住了就改成「记住」，它就不再回来。</p>';
+      ['po','cs','en'].forEach(function(s){
+        var ids = rv.filter(function(x){ return x[1] === s; }).map(function(x){ return x[0]; });
+        if (ids.length){ h += '<div class="nt-sec"><h3>' + SUB[s] + '</h3>' + list(ids, s) + '</div>'; CUR = CUR.concat(ids); }
+      });
+      h += '</section>';
+    }
+    // 三科
+    ['po','cs','en'].forEach(function(s){
+      var secs = nt.secs.filter(function(x){ return x.s === s; });
+      if (!secs.length) return;
+      var body = '', tot = 0;
+      secs.forEach(function(sc){
+        var ids = sc.dyn ? weak(sc.dyn) : sc.ids;
+        var show = sc.hk ? ids.filter(function(id){ return S.m[id] !== 2; }) : ids;
+        var known = sc.hk ? ids.filter(function(id){ return S.m[id] === 2; }) : [];
+        tot += secMins(ids, sc.hk);
+        CUR = CUR.concat(ids);
+        body += '<div class="nt-sec"><h3>' + esc(sc.t) + '<small>' + ids.length + ' 条' + (known.length ? '，已记住 ' + known.length : '') + '</small></h3>';
+        if (sc.dyn && !ids.length) body += '<div class="nt-empty">没有还标着「没记住 / 模糊」的条目。前面没标过的话，这一节是空的——那就把今晚的时间留给睡觉。</div>';
+        body += list(show, s);
+        if (known.length) body += '<details class="known"><summary>已标「记住」的 ' + known.length + ' 条（点开复查）</summary>' + list(known, s) + '</details>';
+        body += '</div>';
+      });
+      h += '<section class="card nt-sub ' + s + ' ' + m + '" id="s-' + s + '"><h2><span class="dot"></span>' + SUB[s] + '<span class="mins">约 ' + Math.max(1, Math.round(tot / 60)) + ' 分钟</span></h2>' + body + '</section>';
+    });
+    h += '<section class="card" id="fin"><h2>收工</h2><div class="nt-end">'
+      + (S.done[N] ? '<span class="pill green">✓ 这一晚已经背完</span><button class="btn sm" id="undo">撤销</button>' : '<button class="btn pri" id="finBtn">✓ 今晚背完了</button>')
+      + (N < NN ? '<button class="btn" id="nextBtn">看下一晚 →</button>' : '')
+      + '</div><p class="note" style="text-align:center">背完记一笔，日历上会打勾。睡前别再刷手机，最后几句作文骨架读出声效果最好。</p></section>';
+    var main = document.getElementById('main');
+    main.innerHTML = h;
+    // 合上自测：彩色关键词挖空
+    if (m === 'test') main.querySelectorAll('.it.cz .a').forEach(maskKw);
+    main.querySelectorAll('.it.cz').forEach(function(el){ if (!el.querySelector('.a .rv') && m === 'test') el.classList.replace('cz', 'qa'); });
+    drawCal(); prog(); timerDraw();
+    var segBtns = document.querySelectorAll('#modeSeg button');
+    segBtns.forEach(function(b){ b.classList.toggle('on', b.dataset.m === m); });
+    var fb = document.getElementById('finBtn'); if (fb) fb.onclick = function(){ S.done[N] = Date.now(); save(); render(); };
+    var ub = document.getElementById('undo'); if (ub) ub.onclick = function(){ delete S.done[N]; save(); render(); };
+    var nb = document.getElementById('nextBtn'); if (nb) nb.onclick = function(){ go(N + 1, true); };
+    document.getElementById('estTxt').textContent = '本晚约 ' + nightMin(N) + ' 分钟';
+  }
+  var KWSEL = '.kw,.kd,.kt,.km,.kx,.kn';
+  function maskKw(box){
+    [].slice.call(box.querySelectorAll(KWSEL)).forEach(function(el){
+      if (el.parentElement.closest(KWSEL)) return;
+      el.classList.add('rv');
+    });
+  }
+  function prog(){
+    var uniq = {}, tot = 0, ok = 0;
+    CUR.forEach(function(id){ if (uniq[id]) return; uniq[id] = 1; tot++; if (S.m[id] != null) ok++; });
+    document.getElementById('pct').textContent = ok + ' / ' + tot;
+    document.getElementById('pct').title = '今晚已标 ' + ok + ' 条，共 ' + tot + ' 条';
+    document.getElementById('progI').style.width = (tot ? 100 * ok / tot : 0) + '%';
+  }
+
+  /* ── 交互 ── */
+  document.getElementById('main').addEventListener('click', function(e){
+    var t = e.target;
+    var cb = t.closest('input[data-tk]');
+    if (cb){ S.tk[cb.dataset.tk] = cb.checked ? 1 : 0; cb.parentElement.classList.toggle('ok', cb.checked); save(); return; }
+    var it = t.closest('.it'); if (!it) return;
+    var id = it.dataset.id;
+    var mb = t.closest('.mk button');
+    if (mb){
+      var v = +mb.dataset.v;
+      if (S.m[id] === v) delete S.m[id]; else S.m[id] = v;
+      save();
+      document.querySelectorAll('.it[data-id="' + CSS.escape(id) + '"]').forEach(function(x){
+        x.classList.remove('m0','m1','m2'); if (S.m[id] != null) x.classList.add('m' + S.m[id]);
+        x.querySelectorAll('.mk button').forEach(function(b){ b.classList.toggle('on', +b.dataset.v === S.m[id]); });
+        x.classList.add('open');
+        x.querySelectorAll('.rv').forEach(function(r){ r.classList.add('shown'); });
+      });
+      prog(); drawCal();
+      return;
+    }
+    if (t.closest('.all')){ it.querySelectorAll('.rv').forEach(function(r){ r.classList.add('shown'); }); return; }
+    var rvEl = t.closest('.rv'); if (rvEl){ rvEl.classList.toggle('shown'); return; }
+    if (t.closest('a')) return;
+    if (t.closest('.peek')){ it.classList.add('open'); return; }
+    if (it.parentElement.classList.contains('rows')) it.classList.toggle('open');
+  });
+  document.getElementById('modeSeg').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    S.mode[N] = b.dataset.m; save();
+    var y = scrollY; render(); scrollTo(0, y);
+  });
+
+  /* ── 计时 ── */
+  var run = null, t0 = 0;
+  function el(){ return (S.t[N] || 0) + (run ? (Date.now() - t0) / 1000 : 0); }
+  function timerDraw(){
+    var s = Math.floor(el()), mm = Math.floor(s / 60), ss = s % 60;
+    document.getElementById('clock').textContent = (mm < 10 ? '0' : '') + mm + ':' + (ss < 10 ? '0' : '') + ss;
+    document.getElementById('tmBtn').textContent = run ? '⏸ 暂停' : (s ? '▶ 继续' : '⏱ 计时');
+  }
+  function stop(){ if (!run) return; S.t[N] = el(); clearInterval(run); run = null; save(); timerDraw(); }
+  document.getElementById('tmBtn').onclick = function(){
+    if (run) stop(); else { t0 = Date.now(); run = setInterval(timerDraw, 1000); timerDraw(); }
+  };
+  document.addEventListener('visibilitychange', function(){ if (document.hidden) stop(); });
+
+  function go(n, scroll){
+    stop();
+    N = n;
+    var u = new URL(location.href);
+    if (n === autoN) u.searchParams.delete('n'); else u.searchParams.set('n', n);
+    history.replaceState(null, '', u.pathname + u.search + u.hash);
+    render();
+    if (scroll) document.getElementById('bar').scrollIntoView({block:'start', behavior:'smooth'});
+  }
+  render();
+})();
+</script>
+</body>
+</html>

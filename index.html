@@ -132,6 +132,19 @@
   <p class="note">要和数学一、英语一、408 共用这 60 天：政治建议每天 1.5–2 小时，11 月以后可以压到碎片时间（手机刷题本来就是为这个设计的）。</p>
 </section>
 
+<section class="card" id="night">
+  <h2>🌙 三科夜背 · 每晚半小时</h2>
+  <p class="lead">图书馆延长开放后的晚间背诵：<b>政治</b>（分析题框架 ＋ 选择题帽子与背诵卡）→ <b>408</b>（术式 52 话的一页纸、合上自测、陷阱、口诀）→ <b>英语</b>（作文骨架、可套句、必会词）。按晚排好，11/25 到 12/19 共 25 晚，标了没记住的会在后面几晚自动回来。</p>
+  <p id="nightNow" class="note"></p>
+  <a class="btn pri" href="背诵/夜背.html">打开今晚的内容 →</a>
+</section>
+<script>
+(function(){
+  var t=new Date(Date.now()+3*36e5).toISOString().slice(0,10), n=Math.round((Date.parse(t)-Date.parse('2026-11-25'))/864e5)+1, el=document.getElementById('nightNow');
+  el.textContent = n<1 ? '11 月 25 日晚开始。' : n>25 ? '25 晚已全部排完，考试加油。' : '今晚是第 '+n+' / 25 晚'+(n<=14?'（一轮）':n<=21?'（二轮）':n<=24?'（冲刺）':'（408 考前一晚）')+'。';
+})();
+</script>
+
 <details class="deep">
   <summary>资料说明 · 清洗记录 · 已知缺口</summary>
   <h3>去水印</h3>
@@ -142,7 +155,7 @@
   <p class="note">这份 1000 题试题 PDF 原本就缺 12 页：马原分析题 P60–64、习概分析题 P113–116、史纲分析题 P154–156。对应分析题的<b>题号和参考答案都在</b>，材料和设问要对照纸质书。时政不在 1000 题内。</p>
 </details>
 
-<p class="footer">兄弟中心：<a href="https://damocles1-study.github.io/kaoyan-408/">408</a> · <a href="https://damocles1-study.github.io/math1-review-center/">数学一</a> · <a href="https://damocles1-study.github.io/kaoyan-english/">英语一</a>。讲义与秒杀为本站自编；题目与解析版权归原作者，本站仅供个人复习，如有侵权联系即删。</p>
+<p class="footer"><a href="背诵/夜背.html">🌙 三科夜背</a> · 兄弟中心：<a href="https://damocles1-study.github.io/kaoyan-408/">408</a> · <a href="https://damocles1-study.github.io/math1-review-center/">数学一</a> · <a href="https://damocles1-study.github.io/kaoyan-english/">英语一</a>。讲义与秒杀为本站自编；题目与解析版权归原作者，本站仅供个人复习，如有侵权联系即删。</p>
 </div>
 <script src="题库/meta.js"></script>
 <script src="assets/common.js?v=pb1"></script>
