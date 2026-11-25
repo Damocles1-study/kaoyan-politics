@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>三科夜背</title>
-<meta name="description" content="政治 · 408 · 英语一，每晚半小时左右的考场向背诵，按晚排到初试前一天。">
+<meta name="description" content="政治大题框架、408 真题判断句、英语真题词汇翻译作文，按晚排到初试前一天。">
 <link rel="stylesheet" href="../assets/style.css?v=sect1">
 <link rel="stylesheet" href="../assets/skin.css?v=3">
 <script src="../assets/skin.js?v=3"></script>
@@ -95,7 +95,7 @@
   .test .rows .it:not(.open) .a *{visibility:hidden}
   .rows .it .mk{justify-self:end}
   .rows .it.m2 .q{color:var(--muted)}
-  .rows .grp{font-size:.72rem;font-weight:800;color:var(--muted);background:var(--card);padding:4px 12px;border-top:1px solid var(--line)}
+  .rows .grp{font-size:.8rem;font-weight:700;color:var(--ink2);background:var(--card);padding:6px 12px;border-top:1px solid var(--line);line-height:1.6}
   .rows .grp:first-child{border-top:0}
   @media (min-width:720px){
     .rows .it{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) auto;align-items:center;gap:12px}
@@ -116,6 +116,19 @@
   .it .act .all{border:0;background:none;color:var(--muted);font:inherit;font-size:.78rem;font-weight:800;cursor:pointer;padding:6px 0;text-decoration:underline dotted}
   .it .act .all:hover{color:var(--accent)}
   .rev .it .a .rv{cursor:pointer}
+  .it .ok{color:var(--green)} .it .ng{color:var(--red)}
+  .it .why{display:block;font-weight:400;color:var(--ink2);font-size:.86rem;line-height:1.7;margin-top:2px}
+  .rows .it .a .why{color:var(--ink2)}
+  .it .hd{color:var(--muted);font-weight:700}
+  .it .cnt{font-size:.72rem;color:var(--muted);font-weight:700;font-family:var(--sans);margin-left:6px}
+  .it .a ul.pts{list-style:none;padding-left:0} .it .a ul.pts li{padding:5px 0;border-bottom:1px dotted var(--line)}
+  .it .a ul.pts .en{font-weight:700}
+  .it .a .ref{margin-top:8px;background:var(--card);padding:7px 10px;border-radius:3px}
+  .it .a .sig{font-size:.86rem;color:var(--ink2);margin-top:6px}
+  .it .q .en{font-weight:600;line-height:1.75}
+  .it img.strip{display:block;max-width:100%;height:auto;margin-top:4px;border:1px solid var(--line);border-radius:3px;background:#fff}
+  .it .cue b{color:var(--ink)}
+  details.known.unm>summary{color:var(--ink2)}
   .read .it .all{display:none}
   .it .a ul.nol{list-style:none;padding-left:0}
   .it .a ul.nol li{margin:6px 0}
@@ -137,7 +150,7 @@
 <div class="crumb"><a href="../index.html">← 政治复盘中心</a><a href="背诵卡.html">🃏 背诵卡</a><a href="哲学十六原理.html">🧠 十六原理</a><a href="思法十四专题.html">🌱 思法十四专题</a></div>
 <header>
   <h1>三科夜背</h1>
-  <p class="sub">政治 · 408 · 英语一，每晚半小时上下，只背考场上用得到的：<b>分析题框架、选择题帽子、408 的一页纸与陷阱、作文骨架和必会词</b>。从 11 月 25 日排到 12 月 19 日。</p>
+  <p class="sub">只背真题要的东西：<b>政治大题框架和整段背法</b>、<b>408 真题选项里的对错判断句</b>、<b>英语真题高频词、翻译句式、作文模板</b>。11 月 25 日到 12 月 19 日，每晚三十来分钟。</p>
 </header>
 
 <section class="card" id="cal">
@@ -145,7 +158,7 @@
   <div class="nt-meta" id="meta"></div>
   <p class="lead" id="nightTitle"></p>
   <div class="nt-cal" id="calGrid"></div>
-  <div class="nt-leg"><span><i style="background:var(--blue)"></i>一轮 11/25–12/8：三科各过一遍</span><span><i style="background:var(--purple)"></i>二轮 12/9–12/15：标了「记住」的自动收起</span><span><i style="background:var(--orange)"></i>冲刺 12/16–12/18</span><span><i style="background:var(--red)"></i>12/19 晚：408 考前</span></div>
+  <div class="nt-leg"><span><i style="background:var(--blue)"></i>一轮 11/25–12/8：全部内容过一遍</span><span><i style="background:var(--purple)"></i>二轮 12/9–12/15：大题再背 ＋ 你标了不熟的</span><span><i style="background:var(--orange)"></i>冲刺 12/16–12/18：政治大题全背、作文模板</span><span><i style="background:var(--red)"></i>12/19 晚：408</span></div>
 </section>
 
 <div class="nt-bar" id="bar">
@@ -158,20 +171,24 @@
 <div id="main"></div>
 
 <section class="card howto" id="howto">
-  <h2>怎么用</h2>
-  <ol>
-    <li><b>先读一遍</b>：顺着往下读，读到的同时在心里复述一次。每条读完点一下 <b>没记住 / 模糊 / 记住</b>，十秒钟的事。</li>
-    <li><b>合上自测</b>：答案收起来（政治框架和作文骨架是把彩色关键词挖成空格），先自己说，再点开对。一轮的晚上建议先读后测，二轮起直接自测。</li>
-    <li><b>标记是有用的</b>：标了没记住或模糊的，会在之后第 1、3、7 晚的开头「先回顾」里再出现；二轮和冲刺晚上，标了「记住」的自动折叠，只剩你还不熟的。最后两晚还会把每科剩下的不熟条目全部拉出来。</li>
-    <li>每晚三科的顺序：<b>政治 → 408 → 英语</b>。政治先考、分量最重；英语放最后，作文句子读出声，读完就睡。</li>
-    <li>记录只存在这台设备的浏览器里（键 <code>pol_night_v1</code>），换手机或电脑不会同步。</li>
-  </ol>
-  <p class="note">素材都来自三个复盘中心：政治的背诵卡、十六原理、思法十四专题、讲义金框与帽子对照表；408 术式 52 话的「领域展开」「合上自测」「陷阱」与口诀；英语新版词库、作文句与阅读套路。英语作文骨架与几条答题骨架是本页补写的。点条目右上角的小字可以跳回原处。</p>
+  <h2>内容从哪来</h2>
+  <ul>
+    <li><b>政治</b>：34 题十六原理、37 题思法十四专题、讲义里史纲 / 毛中特 / 习概的大题框架，每条都是「框架 ＋ 完整背法」；2024–2026 真题大题原题和答案（2026 无官方答案，用的是按教材整理的骨架）；选择题的易混提法与帽子对照表。</li>
+    <li><b>408</b>：2009–2025 真题选择题。「下列说法正确 / 错误的是」和罗马数字题拆成一句一句的判断，标对错和书上的依据；概念题取「题干 → 答案」。计算题不在这里。</li>
+    <li><b>英语</b>：真题词库里按出现篇数排的阅读正文高频词、选项和题干高频词、态度词（每个配一句真题原句）；2012–2025 翻译划线句，带句式、采分片段的译法和参考译文；作文是七类小作文和两类大作文的完整模板，加真题范文里的短语。</li>
+  </ul>
+  <h2 style="margin-top:18px">怎么背</h2>
+  <ul>
+    <li><b>先读一遍</b>：全部展开。读完一条点 <b>没记住 / 模糊 / 记住</b>。</li>
+    <li><b>合上自测</b>：答案收起，框架和模板里的关键句挖成空格；先说，再点开。</li>
+    <li>一轮每条都标一下。二轮只把你标了没记住 / 模糊的拉回来（政治大题框架例外，全部再背一遍）；最后两晚再把各科还没记住的全部拉出来。</li>
+    <li>记录只存在这台设备的浏览器里（<code>pol_night_v1</code>）。</li>
+  </ul>
 </section>
 <p class="footer">兄弟中心：<a href="https://damocles1-study.github.io/kaoyan-408/">408</a> · <a href="https://damocles1-study.github.io/kaoyan-english/">英语一</a> · <a href="../index.html">政治</a></p>
 </div>
 
-<script src="data_night.js?v=1"></script>
+<script src="data_night.js?v=2"></script>
 <script src="../assets/common.js?v=pb1"></script>
 <script>
 (function(){
@@ -269,7 +286,7 @@
   /* 按当前标记实算一晚要多久：二轮 / 冲刺里已标「记住」的收起，不算时间 */
   function nightMin(n){
     var nt = night(n), t = 0;
-    nt.secs.forEach(function(sc){ t += secMins(sc.dyn ? weak(sc.dyn) : sc.ids, sc.hk); });
+    nt.secs.forEach(function(sc){ t += sc.wk ? secMins(sc.ids.filter(function(id){ return S.m[id] === 0 || S.m[id] === 1; })) : secMins(sc.dyn ? weak(sc.dyn) : sc.ids, sc.hk); });
     review(n).forEach(function(x){ t += I[x[0]] ? I[x[0]].e : 0; });
     if (nt.tasks && nt.tasks.length) t += 600;
     return Math.max(1, Math.round(t / 60));
@@ -321,13 +338,16 @@
       var body = '', tot = 0;
       secs.forEach(function(sc){
         var ids = sc.dyn ? weak(sc.dyn) : sc.ids;
-        var show = sc.hk ? ids.filter(function(id){ return S.m[id] !== 2; }) : ids;
-        var known = sc.hk ? ids.filter(function(id){ return S.m[id] === 2; }) : [];
-        tot += secMins(ids, sc.hk);
-        CUR = CUR.concat(ids);
-        body += '<div class="nt-sec"><h3>' + esc(sc.t) + '<small>' + ids.length + ' 条' + (known.length ? '，已记住 ' + known.length : '') + '</small></h3>';
-        if (sc.dyn && !ids.length) body += '<div class="nt-empty">没有还标着「没记住 / 模糊」的条目。前面没标过的话，这一节是空的——那就把今晚的时间留给睡觉。</div>';
+        var show = sc.wk ? ids.filter(function(id){ return S.m[id] === 0 || S.m[id] === 1; }) : sc.hk ? ids.filter(function(id){ return S.m[id] !== 2; }) : ids;
+        var known = (sc.hk || sc.wk) ? ids.filter(function(id){ return S.m[id] === 2; }) : [];
+        var unm = sc.wk ? ids.filter(function(id){ return S.m[id] == null; }) : [];
+        tot += sc.wk ? secMins(show) : secMins(ids, sc.hk);
+        CUR = CUR.concat(sc.wk ? show : ids);
+        body += '<div class="nt-sec"><h3>' + esc(sc.t) + '<small>' + (sc.wk ? show.length + ' 条要再背' : ids.length + ' 条') + (known.length ? '，已记住 ' + known.length : '') + '</small></h3>';
+        if (sc.dyn && !ids.length) body += '<div class="nt-empty">没有还标着「没记住 / 模糊」的条目。</div>';
+        if (sc.wk && !show.length) body += '<div class="nt-empty">这两晚没有标了「没记住 / 模糊」的' + (unm.length ? '；还有 ' + unm.length + ' 条当时没标，在下面' : '') + '。</div>';
         body += list(show, s);
+        if (unm.length) body += '<details class="known unm"><summary>一轮没标过的 ' + unm.length + ' 条（点开补背）</summary>' + list(unm, s) + '</details>';
         if (known.length) body += '<details class="known"><summary>已标「记住」的 ' + known.length + ' 条（点开复查）</summary>' + list(known, s) + '</details>';
         body += '</div>';
       });
